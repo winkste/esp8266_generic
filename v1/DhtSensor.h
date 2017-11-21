@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        SingleRelay.h
+* FILENAME :        DhtSensor.h
 *
 * DESCRIPTION :
-*       Class header for Single Relay
+*       Class header for DHT Sensor
 *
 * PUBLIC FUNCTIONS :
 *       N/A
@@ -29,18 +29,18 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef SINGLERELAY_H_
-#define SINGLERELAY_H_
+#ifndef DHTSENSOR_H_
+#define DHTSENSOR_H_
 
 /****************************************************************************************/
 /* Imported header files: */
+#include <ESP8266WiFi.h>         
+#include <PubSubClient.h>
+#include <DHT.h>
 
 #include "MqttDevice.h"
 #include "Trace.h"
 #include "PubSubClient.h"
-
-#include <ESP8266WiFi.h>         
-#include <PubSubClient.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -53,43 +53,47 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class SingleRelay : public MqttDevice
+class DhtSensor : public MqttDevice
 {
     public:
         /********************************************************************************/
         /* Public data definitions */
+        DHT                  *dht_p; 
+        float                humidity_f32 = 0.0;
+        float                temperature_f32 = 0.0; 
+        uint32_t             prevTime_u32 = 0;
+        uint16_t             publications_u16 = 0;
 
         /********************************************************************************/
         /* Public function definitions: */
-        SingleRelay(Trace *p_trace);
+        DhtSensor(Trace *p_trace);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
         void Initialize();
         void Reconnect(PubSubClient *client_p, const char *dev_p);
-        void ToggleRelay(void);
         virtual
-        ~SingleRelay();
+        ~DhtSensor();
     private:
         /********************************************************************************/
-        /* Private data definitions */ 
-        boolean relayState_bol        = false;
-        boolean publishState_bol      = true;
+        /* Private data definitions */
+        uint32_t publishData_u32;
         char buffer_ca[100];
-        
+
         /********************************************************************************/
         /* Private function definitions: */
-        void TurnRelayOff(void);
-        void TurnRelayOn(void);
-        void setRelay(void);
         char* build_topic(const char *topic);
+        
     protected:
         /********************************************************************************/
         /* Protected data definitions */
-
+        
         /********************************************************************************/
         /* Protected function definitions: */
+        char *f2s(float f, int p);
+        void TurnDHTOn();
+        void TurnDHTOff();
 
 };
 
-#endif /* SINGLERELAY_H_ */
+#endif /* DHTSENSOR_H_ */

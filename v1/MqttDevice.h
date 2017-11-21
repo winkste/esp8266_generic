@@ -78,7 +78,8 @@ class MqttDevice
         const char          *dev_p;
 
         /********************************************************************************/
-        /* Private function definitions: */
+        /* Protected function definitions: */
+        
 };
 
 #endif /* MQTTDEVICE_H_ */

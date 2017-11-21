@@ -229,7 +229,7 @@ bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
     else
     {
         p_trace->println(trace_ERROR_MSG, 
-                              "connection failure in sonoff ProcessPublishRequests "); 
+                              "connection failure in relay ProcessPublishRequests "); 
     }
     return ret; 
 };
@@ -320,3 +320,4 @@ char* SingleRelay::build_topic(const char *topic)
   sprintf(buffer_ca, "%s%s", this->dev_p, topic);
   return buffer_ca;
 }
+

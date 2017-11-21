@@ -43,7 +43,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Trace.h"
 #include "PubSubClient.h"
 
-//#include "DhtSensor.h"
+#include "DhtSensor.h"
 #include "SingleRelay.h"
 
 /****************************************************************************************/
@@ -108,7 +108,7 @@ MqttDevice * DeviceFactory::GenerateDevice(uint8_t type_u8)
             device_p = new SingleRelay(trace_p);
             break;
         case 1:
-            //device_p = new DhtSensor(trace_p);
+            device_p = new DhtSensor(trace_p);
             break;
         default:
             break;
