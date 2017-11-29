@@ -345,7 +345,7 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
 
   // capabilities
-  device_pst = factory_st.GenerateDevice(0);
+  device_pst = factory_st.GenerateDevice(2);
   // capabilities
   
   trace_st.print(trace_INFO_MSG, "=== End of parameters ===");
@@ -443,7 +443,8 @@ void loopCallback()
   }
   //// publish requests ////
 
-	if(true == startWifiConfig_bolst)
+  
+	if((true == startWifiConfig_bolst) || MqttDevice::GetReconfigRequest())
 	{
     startWifiConfig_bolst = false;
 		trace_st.println(trace_INFO_MSG, "<<sys>> Rebooting to setup mode");

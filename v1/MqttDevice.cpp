@@ -49,8 +49,18 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local type definitions (enum, struct, union) */
 
 /****************************************************************************************/
+/* Static Data instantiation */
+bool MqttDevice::startWifiConfig_bol = false;
+
+/****************************************************************************************/
 /* Public functions (unlimited visibility) */
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Returns re-config request status and sets it to false
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    re-config request
+*//*-----------------------------------------------------------------------------------*/
 MqttDevice::MqttDevice(Trace *p_trace)
 {
     this->prevTime_u32 = 0;
@@ -60,19 +70,51 @@ MqttDevice::MqttDevice(Trace *p_trace)
     this->isConnected_bol = false;
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Returns re-config request status and sets it to false
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    re-config request
+*//*-----------------------------------------------------------------------------------*/
 MqttDevice::~MqttDevice()
 {
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Returns re-config request status and sets it to false
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    re-config request
+*//*-----------------------------------------------------------------------------------*/
 unsigned long MqttDevice::GetPrevTime_u32()
 {
     return(prevTime_u32);
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Returns re-config request status and sets it to false
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    re-config request
+*//*-----------------------------------------------------------------------------------*/
 unsigned int MqttDevice::GetPublications_u16()
 {
     return(publications_u16);
 
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Returns re-config request status and sets it to false
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    re-config request
+*//*-----------------------------------------------------------------------------------*/
+bool MqttDevice::GetReconfigRequest() 
+{
+    bool ret_bol = MqttDevice::startWifiConfig_bol;
+
+    MqttDevice::startWifiConfig_bol = false;
+    return(ret_bol);
 }
 
 /****************************************************************************************/

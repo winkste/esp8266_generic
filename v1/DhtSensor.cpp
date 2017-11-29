@@ -55,13 +55,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define DHTTYPE                   DHT22 // DHT11 or DHT22
 
 #define POWER_SAVE                1   // 1 = activated
-#define POWER_SAVE_TIME           10  // = 10 seconds power save time
+#define POWER_SAVE_TIME           300  // = 300 seconds power save time
 #define MAX_PUBS_TILL_POWER_SAVE  1   // send two times data than go to sleep
 
 #define MQTT_PUB_TEMPERATURE      "/temp_hum/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/temp_hum/hum" // humidity data
 #define MQTT_PUB_BATTERY          "/temp_hum/bat" // battery capacity data
-#define MQTT_REPORT_INTERVAL      2000 //(ms) - 2 seconds between reports
+#define MQTT_REPORT_INTERVAL      5000 //(ms) - 5 seconds between reports
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -124,8 +124,15 @@ void DhtSensor::Initialize()
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
 {
-      // ... no subscriptions needed here
-    this->isConnected_bol = true;
+    if(NULL != client_p)
+    {
+        this->dev_p = dev_p;
+        this->isConnected_bol = true;
+    }
+    else
+    {
+        this->isConnected_bol = true;
+    }
 }
 
 /**---------------------------------------------------------------------------------------
@@ -157,12 +164,12 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
     String tPayload;
     boolean ret = false;
 
-    if(true == this->isConnected_bol)
-    {
-        p_trace->println(trace_INFO_MSG, "DHT Sensor processes publish request");
+    if(this->prevTime_u32 + MQTT_REPORT_INTERVAL < millis() || this->prevTime_u32 == 0)
+    {      
         // the temperature and humidity publication is time interval based
-        if(this->prevTime_u32 + MQTT_REPORT_INTERVAL < millis() || this->prevTime_u32 == 0)
+        if(true == this->isConnected_bol)
         {
+            p_trace->println(trace_INFO_MSG, "DHT Sensor processes publish request");
             this->prevTime_u32 = millis();
             p_trace->println(trace_INFO_MSG, "reading temperature and humidity from DHT");
 
@@ -211,12 +218,13 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
             #endif
             }
         } 
+        else
+        {
+            p_trace->println(trace_ERROR_MSG, 
+                                  "connection failure in dht ProcessPublishRequests "); 
+        }
     }
-    else
-    {
-        p_trace->println(trace_ERROR_MSG, 
-                              "connection failure in dht ProcessPublishRequests "); 
-    }
+
     return ret;  
 }
 

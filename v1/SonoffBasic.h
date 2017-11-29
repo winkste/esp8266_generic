@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        Sensor.h
+* FILENAME :        SonoffBasic.h
 *
 * DESCRIPTION :
-*       Abstract class for Sensors
+*       Class header for Single Relay
 *
 * PUBLIC FUNCTIONS :
 *       N/A
@@ -29,14 +29,18 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef MQTTDEVICE_H_
-#define MQTTDEVICE_H_
+#ifndef SONOFFBASIC_H_
+#define SONOFFBASIC_H_
 
 /****************************************************************************************/
 /* Imported header files: */
-#include <string>
+
+#include "MqttDevice.h"
 #include "Trace.h"
 #include "PubSubClient.h"
+
+#include <ESP8266WiFi.h>         
+#include <PubSubClient.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -49,39 +53,48 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class MqttDevice
+class SonoffBasic : public MqttDevice
 {
     public:
         /********************************************************************************/
         /* Public data definitions */
-
+        static SonoffBasic *mySelf_p;
+        static uint32_t timerButtonDown_u32;
+        static uint8_t counterButton_u8;
+        static bool startWifiConfig_bol;
         /********************************************************************************/
         /* Public function definitions: */
-        MqttDevice(Trace *p_trace);
-        virtual ~MqttDevice();
+        SonoffBasic(Trace *p_trace);
         // virtual functions, implementation in derived classes
-        virtual bool ProcessPublishRequests(PubSubClient *client) = 0;
-        virtual void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload) = 0;
-        virtual void Initialize() = 0;
-        virtual void Reconnect(PubSubClient *client_p, const char *dev_p) = 0;
-        unsigned long GetPrevTime_u32();
-        unsigned int GetPublications_u16();
-        static bool GetReconfigRequest();
-
+        bool ProcessPublishRequests(PubSubClient *client);
+        void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
+        void Initialize();
+        void Reconnect(PubSubClient *client_p, const char *dev_p);
+        void ToggleRelay(void);
+        static void UpdateBUTTONstate();
+        static void SetSelf(SonoffBasic *mySelf_p);
+        virtual
+        ~SonoffBasic();
+    private:
+        /********************************************************************************/
+        /* Private data definitions */ 
+        boolean relayState_bol        = false;
+        boolean publishState_bol      = true;
+        char buffer_ca[100];
+        
+        /********************************************************************************/
+        /* Private function definitions: */
+        void TurnRelayOff(void);
+        void TurnRelayOn(void);
+        void setRelay(void);
+        char* build_topic(const char *topic);
     protected:
         /********************************************************************************/
         /* Protected data definitions */
-        unsigned long       prevTime_u32;
-        unsigned int        publications_u16;
-        bool                isInitialized_bol;
-        bool                isConnected_bol;
-        Trace               *p_trace;
-        const char          *dev_p;
-        static bool startWifiConfig_bol;
 
         /********************************************************************************/
         /* Protected function definitions: */
-        
+
 };
 
-#endif /* MQTTDEVICE_H_ */
+#endif /* SONOFFBASIC_H_ */

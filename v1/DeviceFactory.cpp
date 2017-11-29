@@ -45,6 +45,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #include "DhtSensor.h"
 #include "SingleRelay.h"
+#include "SonoffBasic.h"
 
 /****************************************************************************************/
 /* Local constant defines */
@@ -57,25 +58,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define CAPABILITY_0x02         0x02u
 #define CAPABILITY_0x01         0x01u
 
-// used pins
-//#define BUTTON_INPUT_PIN          0  // D3
-
-#define DHTPIN                    5  // D1
-#define DHT_PWR                   4  // D2
-
-#define TEMPERATURE_CORR_FACTOR   (1.00)
-#define HUMIDITY_CORR_FACTOR      (1.23)
-#define DHTTYPE                   DHT22 // DHT11 or DHT22
-
-// unused pins
-//#define UNUSED_5                  5 // D1
-#define UNUSED_12                 12 // D6
-#define UNUSED_13                 13 // D7
-#define UNUSED_14                 14 // D5
-#define UNUSED_4                  4  // D2
-#define UNUSED_16                 16 // D0
-#define UNUSED_2                  2  // D4
-#define UNUSED_15                 15 // D8
 
 /****************************************************************************************/
 /* Local function like makros */
@@ -101,6 +83,7 @@ DeviceFactory::DeviceFactory(Trace * p_trace)
 MqttDevice * DeviceFactory::GenerateDevice(uint8_t type_u8)
 {
     MqttDevice * device_p = NULL;
+    SonoffBasic *sonoffDevice_p = NULL;
 
     switch(type_u8)
     {
@@ -109,6 +92,11 @@ MqttDevice * DeviceFactory::GenerateDevice(uint8_t type_u8)
             break;
         case 1:
             device_p = new DhtSensor(trace_p);
+            break;
+        case 2:
+            sonoffDevice_p = new SonoffBasic(trace_p);
+            sonoffDevice_p->SetSelf(sonoffDevice_p);
+            device_p = sonoffDevice_p;
             break;
         default:
             break;
