@@ -37,12 +37,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /*****************************************************************************************
  * Include Interfaces
 *****************************************************************************************/
-#include <iostream>
-#include <string>
-using namespace std;
-
 #include "Trace.h"
 
+#include <string>
+using namespace std;
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
@@ -111,120 +109,8 @@ Trace::~Trace()
     // TODO Auto-generated destructor stub
 }
 
-/**---------------------------------------------------------------------------------------
- * @brief     Initialization of the trace interface selected with the constructor
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::Initialize()
-{
-    // init the serial
-    cout << "started...";
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print function for String parameter w/o new line at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     msg_str         message
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::print(uint8_t type_u8, string msg_str)
-{
-  prepareMsg(type_u8, msg_str);
-  cout << buffer_str;
-  
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print line function for String parameter with new line at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     msg_str         message
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::println(uint8_t type_u8, string msg_str)
-{
-  prepareMsg(type_u8, string(msg_str));
-  cout << buffer_str << endl;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print function for char pointer parameter w/o new line at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     msg_pc          message
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::print(uint8_t type_u8, char *msg_pc)
-{
-  prepareMsg(type_u8, string(msg_pc));
-  cout << buffer_str;
-  
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print line function for char pointer parameter with new line 
- *              at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     msg_pc          message
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::println(uint8_t type_u8, char *msg_pc)
-{
-  prepareMsg(type_u8, string(msg_pc));
-  cout << buffer_str << endl;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print function for uint8_t parameter w/o new line at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     value_u8        data value
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::print(uint8_t type_u8, uint8_t value_u8)
-{
-  prepareMsg(type_u8, std::to_string(value_u8));
-  cout << buffer_str;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Trace print line function for uint8_t parameter with new line 
- *              at the end
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     type_u8         trace message type
- * @param     value_u8        data value
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::println(uint8_t type_u8, uint8_t value_u8)
-{
-  prepareMsg(type_u8, std::to_string(value_u8));
-  cout << buffer_str << endl;;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     For asynchronous data channels, this function can be used to send 
- *            queued messages to the channel at a dedicated time.
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Trace::PushToChannel()
-{
-    // not needed in this implementation
-}
-
 /****************************************************************************************/
-/* Private functions: */
+/* Protected functions: */
 /****************************************************************************************/
 /**---------------------------------------------------------------------------------------
  * @brief     Trace preparation function to combine message type and message 

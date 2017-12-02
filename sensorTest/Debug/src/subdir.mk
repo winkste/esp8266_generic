@@ -10,6 +10,8 @@ CPP_SRCS += \
 ../src/PubSubClient.cpp \
 ../src/SonoffSwitch.cpp \
 ../src/Trace.cpp \
+../src/TraceErr.cpp \
+../src/TraceSerial.cpp \
 ../src/sensorTest.cpp 
 
 OBJS += \
@@ -19,6 +21,8 @@ OBJS += \
 ./src/PubSubClient.o \
 ./src/SonoffSwitch.o \
 ./src/Trace.o \
+./src/TraceErr.o \
+./src/TraceSerial.o \
 ./src/sensorTest.o 
 
 CPP_DEPS += \
@@ -28,6 +32,8 @@ CPP_DEPS += \
 ./src/PubSubClient.d \
 ./src/SonoffSwitch.d \
 ./src/Trace.d \
+./src/TraceErr.d \
+./src/TraceSerial.d \
 ./src/sensorTest.d 
 
 

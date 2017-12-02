@@ -135,7 +135,8 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
 void DhtSensor::TestIntegerFunc(int testVal)
 {
     DhtSensor::testInteger2 = testVal;
-    cout << "This is a static function: " << DhtSensor::testInteger2 << endl;
+    //p_trace->print(trace_INFO_MSG, "This is a static function: ");
+    //p_trace->println(trace_PURE_MSG, DhtSensor::testInteger2);
 }
 
 void DhtSensor::SetSelf(DhtSensor *myself_p)

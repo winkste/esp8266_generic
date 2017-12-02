@@ -9,21 +9,26 @@
 #include <iostream>
 #include "MqttDevice.h"
 #include "Trace.h"
+#include "TraceSerial.h"
+#include "TraceErr.h"
 #include "DeviceFactory.h"
 
 using namespace std;
 
 int main()
 {
-    Trace myLogger(true, 0);
+    TraceSerial myLogger(true, 0);
+    TraceErr myErr(true, 0);
+    Trace *myLogger_p = &myErr;
+    //Trace *myLogger_p = &myLogger;
     PubSubClient client;
     //DhtSensor dht(&myLogger);
     //SonoffSwitch mySwitch(&myLogger);
-    DeviceFactory factory(&myLogger);
+    DeviceFactory factory(myLogger_p);
     MqttDevice *p_genSensor;
 
 
-    myLogger.println(trace_PURE_MSG, "!!!Hello World!!!"); // prints !!!Hello World!!!
+    myLogger_p->println(trace_PURE_MSG, "!!!Hello World!!!"); // prints !!!Hello World!!!
 
 	//p_genSensor = &dht;
     p_genSensor = factory.GenerateDevice(1);
