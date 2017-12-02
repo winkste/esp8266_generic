@@ -4,9 +4,6 @@
 * DESCRIPTION :
 *       Class header for DHT Sensor
 *
-* PUBLIC FUNCTIONS :
-*       N/A
-*
 * NOTES :
 *
 * Copyright (c) [2017] [Stephan Wink]

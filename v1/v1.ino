@@ -345,7 +345,7 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
 
   // capabilities
-  device_pst = factory_st.GenerateDevice(2);
+  device_pst = factory_st.GenerateDevice(1);
   // capabilities
   
   trace_st.print(trace_INFO_MSG, "=== End of parameters ===");

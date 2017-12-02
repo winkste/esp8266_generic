@@ -4,11 +4,6 @@
 * DESCRIPTION :
 *       Header file to define general/template settings
 *
-* PUBLIC FUNCTIONS :
-*       N/A
-*
-* NOTES :
-*
 * Copyright (c) [2017] [Stephan Wink]
 * 
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -52,10 +47,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PAYLOAD_CMD_INFO     "INFO"
 #define MQTT_PAYLOAD_CMD_SETUP    "SETUP"
 #define PUBLISH_TIME_OFFSET       200     // ms timeout between two publishes
-
-#define BUTTON_INPUT_PIN          0  // D3
-#define BUTTON_TIMEOUT            1500  // max 1500ms timeout between each button press to count up (start of config)
-#define BUTTON_DEBOUNCE           400  // ms debouncing for the botton
 
 /****************************************************************************************/
 /* Global function like macro defines (to be avoided): */

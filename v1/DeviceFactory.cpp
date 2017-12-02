@@ -2,15 +2,10 @@
 * FILENAME :        DeviceFactory.cpp
 *
 * DESCRIPTION :
-*       Device generator
+*       Device generator class
+*       This class has got the information of the different devices and generates
+*       them on request. The user has to specify which type of device he needs.
 *
-* PUBLIC FUNCTIONS :
-*
-*
-* NOTES :
-*
-*
-* Copyright (c) [2017] [Stephan Wink]
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +64,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Public functions (unlimited visibility) */
 
 /**---------------------------------------------------------------------------------------
- * @brief     Constructor for SonoffSwitch
+ * @brief     Constructorfor the device fectory
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     p_trace     trace object for info and error messages
@@ -80,6 +75,13 @@ DeviceFactory::DeviceFactory(Trace * p_trace)
     this->trace_p = p_trace;
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Method to generate devices based on the specified type
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8     type of device
+ * @return    a MqttDevice if successful, else NULL
+*//*-----------------------------------------------------------------------------------*/
 MqttDevice * DeviceFactory::GenerateDevice(uint8_t type_u8)
 {
     MqttDevice * device_p = NULL;

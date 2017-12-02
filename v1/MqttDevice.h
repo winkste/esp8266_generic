@@ -4,9 +4,6 @@
 * DESCRIPTION :
 *       Abstract class for Sensors
 *
-* PUBLIC FUNCTIONS :
-*       N/A
-*
 * NOTES :
 *
 * Copyright (c) [2017] [Stephan Wink]
@@ -58,16 +55,17 @@ class MqttDevice
         /********************************************************************************/
         /* Public function definitions: */
         MqttDevice(Trace *p_trace);
+        unsigned long GetPrevTime_u32();
+        unsigned int GetPublications_u16();
+
+        static bool GetReconfigRequest();
+
         virtual ~MqttDevice();
-        // virtual functions, implementation in derived classes
         virtual bool ProcessPublishRequests(PubSubClient *client) = 0;
         virtual void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload) = 0;
         virtual void Initialize() = 0;
         virtual void Reconnect(PubSubClient *client_p, const char *dev_p) = 0;
-        unsigned long GetPrevTime_u32();
-        unsigned int GetPublications_u16();
-        static bool GetReconfigRequest();
-
+        
     protected:
         /********************************************************************************/
         /* Protected data definitions */
@@ -77,7 +75,8 @@ class MqttDevice
         bool                isConnected_bol;
         Trace               *p_trace;
         const char          *dev_p;
-        static bool startWifiConfig_bol;
+        
+        static bool         startWifiConfig_bol;
 
         /********************************************************************************/
         /* Protected function definitions: */

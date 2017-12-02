@@ -4,9 +4,6 @@
 * DESCRIPTION :
 *       Implementation of the single relay shield.
 *
-* PUBLIC FUNCTIONS :
-*
-*
 * NOTES :
 *
 *
@@ -44,7 +41,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define RELAY_PIN            5
+#define RELAY_PIN                 5
 #define MQTT_SUB_TOGGLE           "/relay/toggle" // command message for toggle command
 #define MQTT_SUB_BUTTON           "/relay/switch" // command message for button commands
 #define MQTT_PUB_LIGHT_STATE      "/relay/status" //state of relay
@@ -69,10 +66,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *//*-----------------------------------------------------------------------------------*/
 SingleRelay::SingleRelay(Trace *p_trace) : MqttDevice(p_trace)
 {
-    this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->relayState_bol  = false;
-    this->publishState_bol      = true;
+    this->prevTime_u32      = 0;
+    this->publications_u16  = 0;
+    this->relayState_bol    = false;
+    this->publishState_bol  = true;
 }
 
 /**---------------------------------------------------------------------------------------

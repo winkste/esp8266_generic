@@ -4,11 +4,7 @@
 * DESCRIPTION :
 *       Abstract Sensor Class
 *
-* PUBLIC FUNCTIONS :
-*
-*
 * NOTES :
-*
 *
 * Copyright (c) [2017] [Stephan Wink]
 *
@@ -56,10 +52,11 @@ bool MqttDevice::startWifiConfig_bol = false;
 /* Public functions (unlimited visibility) */
 
 /**---------------------------------------------------------------------------------------
- * @brief     Returns re-config request status and sets it to false
+ * @brief     Constructur for MqttDevice
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    re-config request
+ * @param     p_trace   trace object for debug output
+ * @return    a MqttDevice object
 *//*-----------------------------------------------------------------------------------*/
 MqttDevice::MqttDevice(Trace *p_trace)
 {
@@ -71,20 +68,20 @@ MqttDevice::MqttDevice(Trace *p_trace)
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     Returns re-config request status and sets it to false
+ * @brief     Default destructor
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    re-config request
+ * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 MqttDevice::~MqttDevice()
 {
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     Returns re-config request status and sets it to false
+ * @brief     Getter method for previous time publication member variable
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    re-config request
+ * @return    time since last publication
 *//*-----------------------------------------------------------------------------------*/
 unsigned long MqttDevice::GetPrevTime_u32()
 {
@@ -92,10 +89,10 @@ unsigned long MqttDevice::GetPrevTime_u32()
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     Returns re-config request status and sets it to false
+ * @brief     Getter method for the count of publications
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    re-config request
+ * @return    count of publications
 *//*-----------------------------------------------------------------------------------*/
 unsigned int MqttDevice::GetPublications_u16()
 {

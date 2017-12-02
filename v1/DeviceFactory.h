@@ -4,11 +4,6 @@
 * DESCRIPTION :
 *       Class header for DeviceFactory
 *
-* PUBLIC FUNCTIONS :
-*       N/A
-*
-* NOTES :
-*
 * Copyright (c) [2017] [Stephan Wink]
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy

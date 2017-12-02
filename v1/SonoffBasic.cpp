@@ -4,9 +4,6 @@
 * DESCRIPTION :
 *       Implementation of the sonoff basic device
 *
-* PUBLIC FUNCTIONS :
-*
-*
 * NOTES :
 *
 *
@@ -64,9 +61,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Static Data instantiation */
-SonoffBasic *SonoffBasic::mySelf_p = NULL;
-uint32_t SonoffBasic::timerButtonDown_u32 = 0;
-uint8_t SonoffBasic::counterButton_u8 = 0;
+SonoffBasic *SonoffBasic::mySelf_p          = NULL;
+uint32_t SonoffBasic::timerButtonDown_u32   = 0;
+uint8_t SonoffBasic::counterButton_u8       = 0;
 
 /****************************************************************************************/
 /* Public functions (unlimited visibility) */
@@ -80,10 +77,10 @@ uint8_t SonoffBasic::counterButton_u8 = 0;
 *//*-----------------------------------------------------------------------------------*/
 SonoffBasic::SonoffBasic(Trace *p_trace) : MqttDevice(p_trace)
 {
-    this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->relayState_bol  = false;
-    this->publishState_bol      = true;
+    this->prevTime_u32      = 0;
+    this->publications_u16  = 0;
+    this->relayState_bol    = false;
+    this->publishState_bol  = true;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -113,7 +110,8 @@ void SonoffBasic::Initialize()
 
     pinMode(BUTTON_INPUT_PIN, INPUT);
     digitalWrite(BUTTON_INPUT_PIN, HIGH); // pull up to avoid interrupts without sensor
-    attachInterrupt(digitalPinToInterrupt(BUTTON_INPUT_PIN), SonoffBasic::UpdateBUTTONstate, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(BUTTON_INPUT_PIN), 
+                                            SonoffBasic::UpdateBUTTONstate, CHANGE);
 
     this->isInitialized_bol = true;
 }
@@ -379,7 +377,8 @@ void SonoffBasic::UpdateBUTTONstate()
         if(SonoffBasic::mySelf_p->counterButton_u8 >= 10)
         {
             MqttDevice::startWifiConfig_bol = true;
-            SonoffBasic::mySelf_p->p_trace->println(trace_INFO_MSG, "<<sonoff>> Reconfig request received");
+            SonoffBasic::mySelf_p->p_trace->println(trace_INFO_MSG, 
+                                                "<<sonoff>> Reconfig request received");
             SonoffBasic::mySelf_p->counterButton_u8 = 1;
         }
       } 

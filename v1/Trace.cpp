@@ -4,9 +4,6 @@
 * DESCRIPTION :
 *       File to support simple wemos relay shield
 *
-* PUBLIC FUNCTIONS :
-*
-*
 * NOTES :
 *             
 * 

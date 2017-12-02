@@ -6,10 +6,6 @@
 *
 * PUBLIC FUNCTIONS :
 *
-*
-* NOTES :
-*
-*
 * Copyright (c) [2017] [Stephan Wink]
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -55,7 +51,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define DHTTYPE                   DHT22 // DHT11 or DHT22
 
 #define POWER_SAVE                1   // 1 = activated
-#define POWER_SAVE_TIME           300  // = 300 seconds power save time
+#define POWER_SAVE_TIME           900  // = 900 seconds = 15mins power save time
 #define MAX_PUBS_TILL_POWER_SAVE  1   // send two times data than go to sleep
 
 #define MQTT_PUB_TEMPERATURE      "/temp_hum/temp" // temperature data
@@ -120,6 +116,8 @@ void DhtSensor::Initialize()
  * @brief     Function call to initialize the MQTT interface for this sensor
  * @author    winkste
  * @date      20 Okt. 2017
+ * @param     client_p  MQTT object for message transfer
+ * @param     dev_p     string identifier of the MQTT device id
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
@@ -196,13 +194,15 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
                 p_trace->print(trace_INFO_MSG, "[mqtt] publish temperature: ");
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_TEMPERATURE);
                 p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_TEMPERATURE), f2s(this->temperature_f32, 2), true);
+                ret = client->publish(build_topic(MQTT_PUB_TEMPERATURE), 
+                                        f2s(this->temperature_f32, 2), true);
                 p_trace->println(trace_PURE_MSG, f2s(this->temperature_f32, 2));
                 
                 p_trace->print(trace_INFO_MSG, "[mqtt] publish humidity: ");
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_HUMIDITY);
                 p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_HUMIDITY), f2s(this->humidity_f32, 2), true);
+                ret = client->publish(build_topic(MQTT_PUB_HUMIDITY), 
+                                        f2s(this->humidity_f32, 2), true);
                 p_trace->println(trace_PURE_MSG, f2s(this->humidity_f32, 2));  
                 publications_u16++;
             }
