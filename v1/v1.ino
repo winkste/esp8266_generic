@@ -78,6 +78,7 @@
  * (always use static: limit visibility, const: read only, volatile: non-optimizable) 
 *****************************************************************************************/
 static char buffer_stca[60];
+static char ssid_stca[60];
 
 // buffer used to send/receive data with MQTT, can not be done with the 
 // buffer_stca, as both are needed simultaniously 
@@ -245,7 +246,7 @@ void reconnect()
     if(tries >= CONNECT_RETRIES)
     {
       trace_st.println(trace_ERROR_MSG, "Can't connect, starting AP");
-      wifiManager_sts.startConfigPortal(CONFIG_SSID); // needs to be tested!
+      wifiManager_sts.startConfigPortal(build_ssid(CONFIG_SSID)); // needs to be tested!
     }
   }
 }
@@ -345,7 +346,7 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
 
   // capabilities
-  device_pst = factory_st.GenerateDevice(1);
+  device_pst = factory_st.GenerateDevice(2);
   // capabilities
   
   trace_st.print(trace_INFO_MSG, "=== End of parameters ===");
@@ -363,6 +364,20 @@ char* build_topic(const char *topic)
 {
   sprintf(buffer_stca, "%s%s", mqttData_sts.dev_short, topic);
   return buffer_stca;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function helps to build the complete topic including the 
+ *              custom device.
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     topic       pointer to topic string
+ * @return    combined topic as char pointer, it uses buffer_stca to store the topic
+*//*-----------------------------------------------------------------------------------*/
+char* build_ssid(const char *ssidName) 
+{
+  sprintf(ssid_stca, "%s%s", ssidName, mqttData_sts.dev_short);
+  return ssid_stca;
 }
 
 
@@ -397,7 +412,7 @@ void setupCallback()
   WiFi.mode(WIFI_STA); // avoid station and ap at the same time
 
   trace_st.println(trace_INFO_MSG, "<<wifi>> connecting... ");
-  if(!wifiManager_sts.autoConnect(CONFIG_SSID)){
+  if(!wifiManager_sts.autoConnect(build_ssid(CONFIG_SSID))){
     // possible situataion: Main power out, ESP went to config mode as the routers wifi wasn available on time .. 
     trace_st.println(trace_ERROR_MSG, "<<wifi>> failed to connect and hit timeout, restarting ...");
     delay(1000); // time for serial to print
@@ -449,7 +464,7 @@ void loopCallback()
     startWifiConfig_bolst = false;
 		trace_st.println(trace_INFO_MSG, "<<sys>> Rebooting to setup mode");
 		delay(200);
-		wifiManager_sts.startConfigPortal(CONFIG_SSID); // needs to be tested!
+		wifiManager_sts.startConfigPortal(build_ssid(CONFIG_SSID)); // needs to be tested!
 		//ESP.reset(); // reboot and switch to setup mode right after that
 	}
 }
