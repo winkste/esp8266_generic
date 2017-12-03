@@ -135,12 +135,12 @@ void SonoffBasic::Reconnect(PubSubClient *client_p, const char *dev_p)
         // toggle relay
         client_p->subscribe(build_topic(MQTT_SUB_TOGGLE));  
         client_p->loop();
-        p_trace->print(trace_INFO_MSG, "[mqtt] subscribed 1: ");
+        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
         p_trace->println(trace_PURE_MSG, MQTT_SUB_TOGGLE);
         // change relay state with payload
         client_p->subscribe(build_topic(MQTT_SUB_BUTTON));  
         client_p->loop();
-        p_trace->print(trace_INFO_MSG, "[mqtt] subscribed 2: ");
+        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 2: ");
         p_trace->println(trace_PURE_MSG, MQTT_SUB_BUTTON);
         client_p->loop();
     }
@@ -193,7 +193,7 @@ void SonoffBasic::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
             }
             else
             {
-                p_trace->print(trace_ERROR_MSG, "[mqtt] unexpected payload: "); 
+                p_trace->print(trace_ERROR_MSG, "<<mqtt>> unexpected payload: "); 
                 p_trace->println(trace_PURE_MSG, p_payload);
             }   
         } 
@@ -221,7 +221,7 @@ bool SonoffBasic::ProcessPublishRequests(PubSubClient *client)
         // check if state has changed, than publish this state
         if(true == publishState_bol)
         {
-            p_trace->print(trace_INFO_MSG, "[mqtt] publish requested state: ");
+            p_trace->print(trace_INFO_MSG, "<<mqtt>> publish requested state: ");
             p_trace->print(trace_PURE_MSG, MQTT_PUB_LIGHT_STATE);
             p_trace->print(trace_PURE_MSG, "  :  ");
             if(true == this->relayState_bol)

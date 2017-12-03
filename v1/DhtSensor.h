@@ -64,6 +64,7 @@ class DhtSensor : public MqttDevice
         /********************************************************************************/
         /* Public function definitions: */
         DhtSensor(Trace *p_trace);
+        DhtSensor(Trace *p_trace, bool powerSaveMode_bol);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -76,6 +77,7 @@ class DhtSensor : public MqttDevice
         /* Private data definitions */
         uint32_t publishData_u32;
         char buffer_ca[100];
+        bool powerSaveMode_bol;
 
         /********************************************************************************/
         /* Private function definitions: */

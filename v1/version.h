@@ -37,6 +37,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 001       21.11         SWI     first version with single relay object
 * 002       01.12         SWI     first version running with SONOFF switch
 * 003       03.12         SWI     added dev short description to config ssid
+* 004       03.12         SWI     minor bug fixes
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -47,7 +48,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "003"     // Firmware Version
+#define FW_VERSION                "004"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

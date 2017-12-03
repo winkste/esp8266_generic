@@ -11,7 +11,7 @@
 *       This module supports the WIFI configuration and FW Update
 *       based on the library:
 *       https://github.com/tzapu/WiFiManager
-*       ssid of config page: OPEN_ESP_CONFIG_AP2
+*       ssid of config page: OPEN_ESP_CONFIG_devXX
 *       ip address: 192.168.4.1
 *       Also toggleing the button at start will startup the WIFI
 *       configuration.
@@ -217,18 +217,19 @@ void reconnect()
     {
       trace_st.println(trace_INFO_MSG, "<<mqtt>> connected");
       client_sts.loop();
-      trace_st.println(trace_INFO_MSG,"<<mqtt>> subscribed generic: ");
-      trace_st.println(trace_INFO_MSG, MQTT_SUB_COMMAND);
+      trace_st.print(trace_INFO_MSG,"<<mqtt>> subscribed generic: ");
+      trace_st.println(trace_PURE_MSG, MQTT_SUB_COMMAND);
       client_sts.subscribe(build_topic(MQTT_SUB_COMMAND));  // request general command with payload
       client_sts.loop();
 
       device_pst->Reconnect(&client_sts, mqttData_sts.dev_short);
       
       trace_st.println(trace_INFO_MSG, "<<mqtt>> subscribing finished");
-      trace_st.print(trace_INFO_MSG, "<<mqtt>> publish firmware info: ");
+      trace_st.print(trace_INFO_MSG, "<<mqtt>> publish firmware partnumber: ");
       trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
       trace_st.println(trace_PURE_MSG, FW_VERSION);
-      trace_st.println(trace_INFO_MSG, FW_DESCRIPTION);
+      trace_st.print(trace_INFO_MSG, "<<mqtt>> publish firmware description: ");
+      trace_st.println(trace_PURE_MSG, FW_DESCRIPTION);
       client_sts.publish(build_topic(MQTT_PUB_FW_IDENT), FW_IDENTIFIER, true);
       client_sts.publish(build_topic(MQTT_PUB_FW_VERSION), FW_VERSION, true);
       client_sts.publish(build_topic(MQTT_PUB_FW_DESC), FW_DESCRIPTION, true);
@@ -325,12 +326,13 @@ void loadConfig()
 {
   // fill the mqtt element with all the data from eeprom
   char* temp=(char*) &mqttData_sts;
-  for(int i=0; i<sizeof(mqttData_sts); i++){
-    //Serial.print(i);
+  
+  for(int i=0; i<sizeof(mqttData_sts); i++)
+  {
     *temp = EEPROM.read(i);
-    //Serial.print(*temp);
     temp++;
   }
+  
   trace_st.println(trace_INFO_MSG, "=== Loaded parameters: ===");
   trace_st.print(trace_INFO_MSG, "mqtt ip: ");        
   trace_st.println(trace_PURE_MSG, mqttData_sts.server_ip);
@@ -346,10 +348,11 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
 
   // capabilities
-  device_pst = factory_st.GenerateDevice(2);
+  device_pst = factory_st.GenerateDevice(atoi(&mqttData_sts.cap[0]));
+  //trace_st.println(trace_INFO_MSG, atoi(&mqttData_sts.cap[0]));
   // capabilities
   
-  trace_st.print(trace_INFO_MSG, "=== End of parameters ===");
+  trace_st.println(trace_INFO_MSG, "=== End of parameters ===");
 }
 
 /**---------------------------------------------------------------------------------------
@@ -401,8 +404,6 @@ void setupCallback()
   trace_st.println(trace_PURE_MSG, FW_VERSION);
   trace_st.print(trace_INFO_MSG, "Firmware Description:");  
   trace_st.println(trace_PURE_MSG, FW_DESCRIPTION);
-  trace_st.print(trace_INFO_MSG, "Device: ");               
-  trace_st.println(trace_PURE_MSG, mqttData_sts.dev_short);
   EEPROM.begin(512); // can be up to 4096
  
   // start wifi manager
@@ -449,16 +450,15 @@ void loopCallback()
  	}
  	client_sts.loop();
 
-	//// publish requests ////
+	//// check for publish requests, but keep an minimum time between two publifications
   if(millis()-timerLastPub_u32st > PUBLISH_TIME_OFFSET)
   {
     processPublishRequests();
     timerRepubAvoid_u32st = millis();
     timerLastPub_u32st = millis();
   }
-  //// publish requests ////
 
-  
+  // check for a re-configuration trigger
 	if((true == startWifiConfig_bolst) || MqttDevice::GetReconfigRequest())
 	{
     startWifiConfig_bolst = false;

@@ -43,21 +43,22 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define DHTPIN                    5  // D1
-#define DHT_PWR                   4  // D2
+#define DHTPIN                    5u  // D1
+#define DHT_PWR                   4u  // D2
 
-#define TEMPERATURE_CORR_FACTOR   (1.00)
-#define HUMIDITY_CORR_FACTOR      (1.23)
+#define TEMPERATURE_CORR_FACTOR   1.00f
+#define HUMIDITY_CORR_FACTOR      1.23f
 #define DHTTYPE                   DHT22 // DHT11 or DHT22
 
-#define POWER_SAVE                1   // 1 = activated
-#define POWER_SAVE_TIME           900  // = 900 seconds = 15mins power save time
-#define MAX_PUBS_TILL_POWER_SAVE  1   // send two times data than go to sleep
+#define POWER_SAVE                1u   // 1 = activated
+#define MAX_PUBS_TILL_POWER_SAVE  1u   // send two times data than go to sleep
+#define MICROSEC_IN_SEC           1000000l // microseconds in seconds
+#define POWER_SAVE_TIME           900l * MICROSEC_IN_SEC  // = 900 secs = 15mins power save
 
 #define MQTT_PUB_TEMPERATURE      "/temp_hum/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/temp_hum/hum" // humidity data
 #define MQTT_PUB_BATTERY          "/temp_hum/bat" // battery capacity data
-#define MQTT_REPORT_INTERVAL      5000 //(ms) - 5 seconds between reports
+#define MQTT_REPORT_INTERVAL      5000l //(ms) - 5 seconds between reports
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -78,6 +79,24 @@ DhtSensor::DhtSensor(Trace *p_trace) : MqttDevice(p_trace)
 {
     this->prevTime_u32 = 0;
     this->publications_u16 = 0;
+    this->powerSaveMode_bol = false;
+    dht_p = new DHT(DHTPIN, DHTTYPE, 11);
+
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for DhtSensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace             trace object for info and error messages
+ * @param     powerSaveMode_bol   true = power save mode active, else false
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+DhtSensor::DhtSensor(Trace *p_trace, bool powerSaveMode_bol) : MqttDevice(p_trace)
+{
+    this->prevTime_u32 = 0;
+    this->publications_u16 = 0;
+    this->powerSaveMode_bol = powerSaveMode_bol;
     dht_p = new DHT(DHTPIN, DHTTYPE, 11);
 
 }
@@ -191,14 +210,14 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
             }
             else
             {      
-                p_trace->print(trace_INFO_MSG, "[mqtt] publish temperature: ");
+                p_trace->print(trace_INFO_MSG, "<<mqtt>> publish temperature: ");
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_TEMPERATURE);
                 p_trace->print(trace_PURE_MSG, "  :  ");
                 ret = client->publish(build_topic(MQTT_PUB_TEMPERATURE), 
                                         f2s(this->temperature_f32, 2), true);
                 p_trace->println(trace_PURE_MSG, f2s(this->temperature_f32, 2));
                 
-                p_trace->print(trace_INFO_MSG, "[mqtt] publish humidity: ");
+                p_trace->print(trace_INFO_MSG, "<<mqtt>> publish humidity: ");
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_HUMIDITY);
                 p_trace->print(trace_PURE_MSG, "  :  ");
                 ret = client->publish(build_topic(MQTT_PUB_HUMIDITY), 
@@ -209,13 +228,14 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
             if(MAX_PUBS_TILL_POWER_SAVE <= this->publications_u16)
             {
                 this->publications_u16 = 0;
-                #ifdef POWER_SAVE
-                p_trace->println(trace_INFO_MSG, "GoTo Power Save Mode");
-                TurnDHTOff();
-                // power save time in seconds
-                ESP.deepSleep(POWER_SAVE_TIME * 1000000); 
-                delay(100);
-            #endif
+                if(true == this->powerSaveMode_bol)
+                {
+                    p_trace->println(trace_INFO_MSG, "GoTo Power Save Mode");
+                    TurnDHTOff();
+                    // power save time in seconds
+                    ESP.deepSleep(POWER_SAVE_TIME); 
+                    delay(100);
+                }
             }
         } 
         else
