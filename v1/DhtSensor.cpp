@@ -50,10 +50,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define HUMIDITY_CORR_FACTOR      1.23f
 #define DHTTYPE                   DHT22 // DHT11 or DHT22
 
-#define POWER_SAVE                1u   // 1 = activated
 #define MAX_PUBS_TILL_POWER_SAVE  1u   // send two times data than go to sleep
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
 #define POWER_SAVE_TIME           900l * MICROSEC_IN_SEC  // = 900 secs = 15mins power save
+
+#define MQTT_SUB_DHT_CMD          "/temp_hum/cmd" // command message for dht
+#define MQTT_PAYLOAD_CMD_ON       "ON"
+#define MQTT_PAYLOAD_CMD_OFF      "OFF"
 
 #define MQTT_PUB_TEMPERATURE      "/temp_hum/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/temp_hum/hum" // humidity data
@@ -145,10 +148,20 @@ void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
     {
         this->dev_p = dev_p;
         this->isConnected_bol = true;
+        p_trace->println(trace_INFO_MSG, "DHT Sensor connected");
+        // ... and resubscribe
+        // dht sensor
+        client_p->subscribe(build_topic(MQTT_SUB_DHT_CMD));  
+        client_p->loop();
+        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
+        p_trace->println(trace_PURE_MSG, MQTT_SUB_DHT_CMD);
     }
     else
     {
-        this->isConnected_bol = true;
+        // failure, not connected
+        p_trace->println(trace_ERROR_MSG, 
+                                "uninizialized MQTT client in single relay detected");
+        this->isConnected_bol = false;
     }
 }
 
@@ -163,10 +176,34 @@ void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
 {
-    p_trace->print(trace_ERROR_MSG, "DHT Sensor mqtt callback, unexpected message: ");
-    p_trace->print(trace_PURE_MSG, p_topic);
-    p_trace->print(trace_PURE_MSG, " : ");
-    p_trace->println(trace_PURE_MSG, p_payload);
+    if(true == this->isConnected_bol)
+    {
+        // received DHT command
+        if (String(build_topic(MQTT_SUB_DHT_CMD)).equals(p_topic)) 
+        {
+            p_trace->println(trace_INFO_MSG, "DHT Sensor mqtt callback");
+            p_trace->println(trace_INFO_MSG, p_topic);
+            p_trace->println(trace_INFO_MSG, p_payload);
+            // test if the payload is equal to "ON" or "OFF"
+            if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
+            {
+                this->powerSaveMode_bol = false; 
+            }
+            else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
+            {
+                this->powerSaveMode_bol = true;
+            }
+            else
+            {
+                p_trace->print(trace_ERROR_MSG, "<<mqtt>> unexpected payload: "); 
+                p_trace->println(trace_PURE_MSG, p_payload);
+            }   
+        } 
+    }
+    else
+    {
+        p_trace->println(trace_ERROR_MSG, "connection failure in DHT CallbackMqtt "); 
+    }
 }
 
 /**---------------------------------------------------------------------------------------

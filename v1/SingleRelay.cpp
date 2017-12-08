@@ -42,9 +42,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define RELAY_PIN                 5
-#define MQTT_SUB_TOGGLE           "/relay/toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "/relay/switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "/relay/status" //state of relay
+#define MQTT_SUB_TOGGLE           "/relay_one/toggle" // command message for toggle command
+#define MQTT_SUB_BUTTON           "/relay_one/switch" // command message for button commands
+#define MQTT_PUB_LIGHT_STATE      "/relay_one/status" //state of relay
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
 

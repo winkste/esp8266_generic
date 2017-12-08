@@ -97,7 +97,14 @@ static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capabili
 static WiFiManagerParameter  wifiManagerParamMqttClientShort_sts("sid", "mqtt short id", "devXX", 6);
 static WiFiManagerParameter  wifiManagerParamMqttServerLogin_sts("login", "mqtt login", "", 15);
 static WiFiManagerParameter  wifiManagerParamMqttServerPw_sts("pw", "mqtt pw", "", 15);
-
+/*
+static WiFiManagerParameter  wifiManagerParamMqttServerId_sts("mq_ip", "mqtt server ip", &mqttData_sts.server_ip[0], 15);
+static WiFiManagerParameter  wifiManagerParamMqttServerPort_sts("mq_port", "mqtt server port", &mqttData_sts.server_port[0], 5);
+static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capability Bit0 = n/a, Bit1 = n/a, Bit2 = n/a", &mqttData_sts.cap[0], 2);
+static WiFiManagerParameter  wifiManagerParamMqttClientShort_sts("sid", "mqtt short id", &mqttData_sts.dev_short[0], 6);
+static WiFiManagerParameter  wifiManagerParamMqttServerLogin_sts("login", "mqtt login", &mqttData_sts.login[0], 15);
+static WiFiManagerParameter  wifiManagerParamMqttServerPw_sts("pw", "mqtt pw", &mqttData_sts.pw[0], 15);
+*/
 static uint32_t             timerRepubAvoid_u32st = 0;
 static uint32_t             timerLastPub_u32st = 0;
 static boolean              publishInfo_bolst = false;
@@ -188,6 +195,19 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
       trace_st.println(trace_PURE_MSG, payload);
     }
   }
+  else if(String(MQTT_SUB_BCAST).equals(p_topic))
+  {
+    // print firmware information
+    if(0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_INFO))) 
+    {
+      publishInfo_bolst = true;     
+    }
+    else
+    {
+      trace_st.print(trace_ERROR_MSG, "[mqtt] unexpected command: "); 
+      trace_st.println(trace_PURE_MSG, payload);
+    }   
+  }
   else
   {
     //basicSwitch_CallbackMqtt(p_topic, payload);
@@ -221,9 +241,15 @@ void reconnect()
       trace_st.println(trace_PURE_MSG, MQTT_SUB_COMMAND);
       client_sts.subscribe(build_topic(MQTT_SUB_COMMAND));  // request general command with payload
       client_sts.loop();
+      trace_st.print(trace_INFO_MSG,"<<mqtt>> broadcast topic: ");
+      trace_st.println(trace_PURE_MSG, MQTT_SUB_BCAST);
+      client_sts.subscribe(MQTT_SUB_BCAST);  // request broadcast command with payload
+      client_sts.loop();
 
+      // reconnect all client device topics
       device_pst->Reconnect(&client_sts, mqttData_sts.dev_short);
-      
+
+      // send out generic commands
       trace_st.println(trace_INFO_MSG, "<<mqtt>> subscribing finished");
       trace_st.print(trace_INFO_MSG, "<<mqtt>> publish firmware partnumber: ");
       trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
@@ -309,6 +335,14 @@ void saveConfigCallback()
     temp++;
   }
   EEPROM.commit();
+
+  wifiManagerParamMqttServerId_sts.setDefaultValue(&mqttData_sts.server_ip[0], 15);
+  wifiManagerParamMqttServerPort_sts.setDefaultValue(&mqttData_sts.server_port[0], 5);
+  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 2);
+  wifiManagerParamMqttClientShort_sts.setDefaultValue(&mqttData_sts.dev_short[0], 6);
+  wifiManagerParamMqttServerLogin_sts.setDefaultValue(&mqttData_sts.login[0], 15);
+  wifiManagerParamMqttServerPw_sts.setDefaultValue(&mqttData_sts.pw[0], 15);
+  
   trace_st.println(trace_INFO_MSG, "configuration saved, restarting");
   delay(2000);  
   ESP.reset(); // we can't change from AP mode to client mode, thus: reboot
@@ -332,6 +366,13 @@ void loadConfig()
     *temp = EEPROM.read(i);
     temp++;
   }
+
+  wifiManagerParamMqttServerId_sts.setDefaultValue(&mqttData_sts.server_ip[0], 15);
+  wifiManagerParamMqttServerPort_sts.setDefaultValue(&mqttData_sts.server_port[0], 5);
+  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 2);
+  wifiManagerParamMqttClientShort_sts.setDefaultValue(&mqttData_sts.dev_short[0], 6);
+  wifiManagerParamMqttServerLogin_sts.setDefaultValue(&mqttData_sts.login[0], 15);
+  wifiManagerParamMqttServerPw_sts.setDefaultValue(&mqttData_sts.pw[0], 15);
   
   trace_st.println(trace_INFO_MSG, "=== Loaded parameters: ===");
   trace_st.print(trace_INFO_MSG, "mqtt ip: ");        

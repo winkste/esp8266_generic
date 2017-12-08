@@ -44,6 +44,20 @@ void WiFiManagerParameter::init(const char *id, const char *placeholder, const c
   _customHTML = custom;
 }
 
+void WiFiManagerParameter::setDefaultValue(const char *defaultValue, int length)
+{
+  _value = new char[length + 1];
+
+  for (int i = 0; i < length; i++) 
+  {
+    _value[i] = 0;
+  }  
+  if (defaultValue != NULL) 
+  {
+    strncpy(_value, defaultValue, length);
+  }  
+}
+
 const char* WiFiManagerParameter::getValue() {
   return _value;
 }

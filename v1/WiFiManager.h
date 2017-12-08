@@ -48,7 +48,8 @@ class WiFiManagerParameter {
     WiFiManagerParameter(const char *custom);
     WiFiManagerParameter(const char *id, const char *placeholder, const char *defaultValue, int length);
     WiFiManagerParameter(const char *id, const char *placeholder, const char *defaultValue, int length, const char *custom);
-
+    
+    void setDefaultValue(const char *defaultValue, int length);
     const char *getID();
     const char *getValue();
     const char *getPlaceholder();

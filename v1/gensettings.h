@@ -43,6 +43,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_FW_VERSION       "/generic/fwversion" //firmware version
 #define MQTT_PUB_FW_DESC          "/generic/desc" //firmware description
 #define MQTT_SUB_COMMAND          "/generic/cmd" // command message for generic commands
+#define MQTT_SUB_BCAST            "bcast/generic/cmd" // broadcast command message
 #define MQTT_CLIENT               MQTT_DEFAULT_DEVICE // just a name used to talk to MQTT broker
 #define MQTT_PAYLOAD_CMD_INFO     "INFO"
 #define MQTT_PAYLOAD_CMD_SETUP    "SETUP"

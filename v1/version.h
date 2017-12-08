@@ -38,6 +38,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 002       01.12         SWI     first version running with SONOFF switch
 * 003       03.12         SWI     added dev short description to config ssid
 * 004       03.12         SWI     minor bug fixes
+* 005       05.12         SWI     load default params from eeprom before starting 
+*                                 config portal
+* 006       07.12         SWI     add broadcast command topic       
+*                                 add command in dht device to toggle power save mode
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -48,7 +52,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "004"     // Firmware Version
+#define FW_VERSION                "006"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/
