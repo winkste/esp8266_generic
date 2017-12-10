@@ -42,6 +42,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *                                 config portal
 * 006       07.12         SWI     add broadcast command topic       
 *                                 add command in dht device to toggle power save mode
+* 007       10.12         SWI     rework single relay to support multi relays
+*                                 add device list in v1 to support multi devices
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -52,7 +54,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "006"     // Firmware Version
+#define FW_VERSION                "007"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

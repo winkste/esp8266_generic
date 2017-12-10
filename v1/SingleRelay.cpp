@@ -42,9 +42,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define RELAY_PIN                 5
-#define MQTT_SUB_TOGGLE           "/relay_one/toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "/relay_one/switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "/relay_one/status" //state of relay
+#define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
+#define MQTT_SUB_BUTTON           "switch" // command message for button commands
+#define MQTT_PUB_LIGHT_STATE      "status" //state of relay
+#define MQTT_DEFAULT_CHAN         "relay_one"
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
 
@@ -70,6 +71,28 @@ SingleRelay::SingleRelay(Trace *p_trace) : MqttDevice(p_trace)
     this->publications_u16  = 0;
     this->relayState_bol    = false;
     this->publishState_bol  = true;
+    this->pin_u8            = RELAY_PIN;
+    this->channel_p         = MQTT_DEFAULT_CHAN;
+    this->invert_bol        = false;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for the single relay shield
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace     trace object for info and error messages
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+SingleRelay::SingleRelay(Trace *p_trace, uint8_t pin_u8, char* relayChan_p, 
+                                              boolean invert_bol) : MqttDevice(p_trace)
+{
+    this->prevTime_u32      = 0;
+    this->publications_u16  = 0;
+    this->relayState_bol    = false;
+    this->publishState_bol  = true;
+    this->pin_u8            = pin_u8;
+    this->channel_p         = relayChan_p; 
+    this->invert_bol        = invert_bol; 
 }
 
 /**---------------------------------------------------------------------------------------
@@ -91,10 +114,11 @@ SingleRelay::~SingleRelay()
 *//*-----------------------------------------------------------------------------------*/
 void SingleRelay::Initialize()
 {
-    p_trace->println(trace_INFO_MSG, "Single relay initialized");
-    pinMode(RELAY_PIN, OUTPUT);
-    this->setRelay();
     this->isInitialized_bol = true;
+    p_trace->println(trace_INFO_MSG, "Single relay initialized");
+    pinMode(this->pin_u8, OUTPUT);
+    //this->setRelay();
+    this->TurnRelayOff();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -117,12 +141,12 @@ void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
         client_p->subscribe(build_topic(MQTT_SUB_TOGGLE));  
         client_p->loop();
         p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, MQTT_SUB_TOGGLE);
+        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_TOGGLE));
         // change relay state with payload
         client_p->subscribe(build_topic(MQTT_SUB_BUTTON));  
         client_p->loop();
         p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 2: ");
-        p_trace->println(trace_PURE_MSG, MQTT_SUB_BUTTON);
+        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_BUTTON));
         client_p->loop();
     }
     else
@@ -262,7 +286,14 @@ void SingleRelay::TurnRelayOff(void)
   if(true == this->isInitialized_bol)
   {
       this->relayState_bol = false;
-      digitalWrite(RELAY_PIN, LOW);
+      if(true == this->invert_bol)
+      {
+        digitalWrite(this->pin_u8, HIGH);
+      }
+      else
+      {
+        digitalWrite(this->pin_u8, LOW);
+      }     
       p_trace->println(trace_INFO_MSG, "relay turned off");
       this->publishState_bol = true;
   }
@@ -279,7 +310,14 @@ void SingleRelay::TurnRelayOn(void)
   if(true == this->isInitialized_bol)
   {
       this->relayState_bol = true;
-      digitalWrite(RELAY_PIN, HIGH);
+      if(true == this->invert_bol)
+      {
+        digitalWrite(this->pin_u8, LOW);
+      }
+      else
+      {
+        digitalWrite(this->pin_u8, HIGH);
+      }
       p_trace->println(trace_INFO_MSG, "relay turned on");
       this->publishState_bol = true;
   }
@@ -314,7 +352,7 @@ void SingleRelay::setRelay(void)
 *//*-----------------------------------------------------------------------------------*/
 char* SingleRelay::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  sprintf(buffer_ca, "%s/%s/%s", this->dev_p, this->channel_p, topic);
   return buffer_ca;
 }
 

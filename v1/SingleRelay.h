@@ -59,6 +59,7 @@ class SingleRelay : public MqttDevice
         /********************************************************************************/
         /* Public function definitions: */
         SingleRelay(Trace *p_trace);
+        SingleRelay(Trace *p_trace, uint8_t pin_u8, char* relayChan_p, boolean invert_bol);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -73,6 +74,9 @@ class SingleRelay : public MqttDevice
         boolean relayState_bol        = false;
         boolean publishState_bol      = true;
         char buffer_ca[100];
+        uint8_t pin_u8                = 0;
+        char *channel_p;
+        boolean invert_bol            = false;
         
         /********************************************************************************/
         /* Private function definitions: */

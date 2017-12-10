@@ -34,6 +34,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Trace.h"
 #include "PubSubClient.h"
 //#include "DhtSensor.h"
+#include "LinkedList.h"
 
 #include "SingleRelay.h"
 
@@ -57,7 +58,7 @@ class DeviceFactory
         /********************************************************************************/
         /* Public function definitions: */
         DeviceFactory(Trace *p_trace);
-        MqttDevice * GenerateDevice(uint8_t type_u8);
+        LinkedList<MqttDevice*> * GenerateDevice(uint8_t type_u8);
         virtual
         ~DeviceFactory();
     private:

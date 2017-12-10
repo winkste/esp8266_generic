@@ -53,6 +53,7 @@
 #include "gensettings.h"
 #include "Trace.h"
 #include "DeviceFactory.h"
+#include "LinkedList.h"
 #include "MqttDevice.h"
 
 #include "version.h"
@@ -87,8 +88,8 @@ static PubSubClient          client_sts(wifiClient_sts);
 static mqttData_t            mqttData_sts;
 static Trace                 trace_st(true, 0);
 static DeviceFactory         factory_st(&trace_st);
-static MqttDevice            *device_pst = NULL;
-
+//static MqttDevice            *device_pst = NULL;
+static LinkedList<MqttDevice*> *deviceList_pst = NULL;
 static WiFiManager           wifiManager_sts;
 // prepare wifimanager variables
 static WiFiManagerParameter  wifiManagerParamMqttServerId_sts("mq_ip", "mqtt server ip", "", 15);
@@ -125,6 +126,7 @@ static boolean              startWifiConfig_bolst = false;
 *//*-----------------------------------------------------------------------------------*/
 boolean processPublishRequests(void)
 {
+  uint8_t idx_u8 = 0;
   String tPayload;
   boolean ret_bol = false;
 
@@ -145,7 +147,12 @@ boolean processPublishRequests(void)
   }
   else
   {
-    device_pst->ProcessPublishRequests(&client_sts);
+    idx_u8 = 0;
+    while(idx_u8 < deviceList_pst->size())
+    {
+      deviceList_pst->get(idx_u8)->ProcessPublishRequests(&client_sts);
+      idx_u8++;
+    }
   }
  
   return(ret_bol);  
@@ -164,12 +171,15 @@ boolean processPublishRequests(void)
 *//*-----------------------------------------------------------------------------------*/
 void callback(char* p_topic, byte* p_payload, unsigned int p_length) 
 {
-  // concat the payload into a string
+  uint8_t idx_u8 = 0;
   String payload;
+
+  // concat the payload into a string
   for (uint8_t i = 0; i < p_length; i++) 
   {
     payload.concat((char)p_payload[i]);
   }
+  
   // print received topic and payload
   trace_st.print(trace_INFO_MSG, "[mqtt] message received: ");
   trace_st.print(trace_PURE_MSG, p_topic);
@@ -210,8 +220,12 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
   }
   else
   {
-    //basicSwitch_CallbackMqtt(p_topic, payload);
-    device_pst->CallbackMqtt(&client_sts, p_topic, payload);
+    idx_u8 = 0;
+    while(idx_u8 < deviceList_pst->size())
+    {
+      deviceList_pst->get(idx_u8)->CallbackMqtt(&client_sts, p_topic, payload);
+      idx_u8++;
+    }
   }  
 }
 
@@ -226,7 +240,8 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
 void reconnect() 
 {
   // Loop until we're reconnected
-  uint8_t tries=0;
+  uint8_t idx_u8 = 0;
+  uint8_t tries = 0;
   while (!client_sts.connected()) 
   {
     trace_st.println(trace_INFO_MSG, "<<mqtt>> Attempting connection...");
@@ -247,7 +262,12 @@ void reconnect()
       client_sts.loop();
 
       // reconnect all client device topics
-      device_pst->Reconnect(&client_sts, mqttData_sts.dev_short);
+      idx_u8 = 0;
+      while(idx_u8 < deviceList_pst->size())
+      {
+        deviceList_pst->get(idx_u8)->Reconnect(&client_sts, mqttData_sts.dev_short);
+        idx_u8++;
+      }
 
       // send out generic commands
       trace_st.println(trace_INFO_MSG, "<<mqtt>> subscribing finished");
@@ -389,7 +409,7 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
 
   // capabilities
-  device_pst = factory_st.GenerateDevice(atoi(&mqttData_sts.cap[0]));
+  deviceList_pst = factory_st.GenerateDevice(atoi(&mqttData_sts.cap[0]));
   //trace_st.println(trace_INFO_MSG, atoi(&mqttData_sts.cap[0]));
   // capabilities
   
@@ -433,6 +453,8 @@ char* build_ssid(const char *ssidName)
 *//*-----------------------------------------------------------------------------------*/
 void setupCallback() 
 {
+  uint8_t idx_u8 = 0;
+  
   // init the serial
   //Serial.begin(115200);
   // first task: initialize Trace
@@ -465,7 +487,12 @@ void setupCallback()
   loadConfig();
 
   // initialize devices
-  device_pst->Initialize();
+  idx_u8 = 0;
+  while(idx_u8 < deviceList_pst->size())
+  {
+    deviceList_pst->get(idx_u8)->Initialize();
+    idx_u8++;
+  }
   
   trace_st.println(trace_INFO_MSG, "<<wifi>> connected");
   trace_st.print(trace_INFO_MSG, "<<wifi>>  IP address: "); 
