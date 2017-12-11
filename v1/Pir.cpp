@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        SingleRelay.cpp
+* FILENAME :        Pir.cpp
 *
 * DESCRIPTION :
-*       Implementation of the single relay shield.
+*       Implementation of the Pir sensor device
 *
 * NOTES :
 *
@@ -33,7 +33,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Include Interfaces */
-#include "SingleRelay.h"
+#include "Pir.h"
 
 #include "MqttDevice.h"
 #include "Trace.h"
@@ -41,13 +41,14 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define RELAY_PIN                 5
-#define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "status" //state of relay
-#define MQTT_DEFAULT_CHAN         "relay_one"
-#define MQTT_PAYLOAD_CMD_ON       "ON"
-#define MQTT_PAYLOAD_CMD_OFF      "OFF"
+#define DEFAULT_PIR_INPUT_PIN     0  // D3
+#define MQTT_PUB_PIR_STATE        "/pir/status"     //state of pir
+#define MQTT_PUB_PIR_GOTO_LOW     "/pir/motion"     // goto low state event  
+#define MQTT_PUB_PIR_GOTO_HIGH    "/pir/no_motion"  // goto high state event
+#define MQTT_PAYLOAD_MOTION       "MOTION"
+#define MQTT_PAYLOAD_NO_MOTION    "NO MOTION"
+
+#define PIR_DEBOUNCE              400  // ms debouncing for the botton
 
 /****************************************************************************************/
 /* Local function like makros */
@@ -56,46 +57,66 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local type definitions (enum, struct, union) */
 
 /****************************************************************************************/
+/* Static Data instantiation */
+Pir *Pir::mySelf_p                  = NULL;
+uint32_t Pir::pirMotionDetect_u32   = 0;
+uint8_t Pir::counterButton_u8       = 0;
+
+/****************************************************************************************/
 /* Public functions (unlimited visibility) */
 
 /**---------------------------------------------------------------------------------------
- * @brief     Constructor for the single relay shield
+ * @brief     Constructor for the pir sensor
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     p_trace     trace object for info and error messages
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-SingleRelay::SingleRelay(Trace *p_trace) : MqttDevice(p_trace)
+Pir::Pir(Trace *p_trace) : MqttDevice(p_trace)
 {
     this->prevTime_u32      = 0;
     this->publications_u16  = 0;
-    this->relayState_bol    = false;
+    this->pirState_bol      = false;
     this->publishState_bol  = true;
-    this->pin_u8            = RELAY_PIN;
-    this->channel_p         = MQTT_DEFAULT_CHAN;
-    this->invert_bol        = false;
+    this->pirPin_u8         = DEFAULT_PIR_INPUT_PIN;
+    this->ledPin_u8         = 0xff; // not used      
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     Constructor for the single relay shield
+ * @brief     Constructor for the pir sensor
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     p_trace     trace object for info and error messages
- * @param     pin_u8      pin selection
- * @param     relayChan_p relay topic message with channel information
- * @param     invert_bol  false = pin HIGH = relay ON = relay led on
+ * @param     pirPin_u8   pir pin selection
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-SingleRelay::SingleRelay(Trace *p_trace, uint8_t pin_u8, char* relayChan_p, 
-                                              boolean invert_bol) : MqttDevice(p_trace)
+Pir::Pir(Trace *p_trace, uint8_t pirPin_u8) : MqttDevice(p_trace)
 {
     this->prevTime_u32      = 0;
     this->publications_u16  = 0;
-    this->relayState_bol    = false;
+    this->pirState_bol      = false;
     this->publishState_bol  = true;
-    this->pin_u8            = pin_u8;
-    this->channel_p         = relayChan_p; 
-    this->invert_bol        = invert_bol; 
+    this->pirPin_u8         = pirPin_u8;
+    this->ledPin_u8         = 0xff; // not used
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for the pir sensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace     trace object for info and error messages
+ * @param     pirPin_u8   pir pin selection
+ * @param     ledPin_u8   led pin, set to high if motion was detected
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+Pir::Pir(Trace *p_trace, uint8_t pirPin_u8, uint8_t ledPin_u8) : MqttDevice(p_trace)
+{
+    this->prevTime_u32      = 0;
+    this->publications_u16  = 0;
+    this->pirState_bol      = false;
+    this->publishState_bol  = true;
+    this->pirPin_u8         = pirPin_u8;
+    this->ledPin_u8         = ledPin_u8;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -104,7 +125,7 @@ SingleRelay::SingleRelay(Trace *p_trace, uint8_t pin_u8, char* relayChan_p,
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-SingleRelay::~SingleRelay()
+Pir::~Pir()
 {
     // TODO Auto-generated destructor stub
 }
@@ -115,13 +136,20 @@ SingleRelay::~SingleRelay()
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void SingleRelay::Initialize()
+void Pir::Initialize()
 {
+    p_trace->println(trace_INFO_MSG, "Pir initialized");
+
+    pinMode(this->pirPin_u8, INPUT);
+    digitalWrite(this->pirPin_u8, HIGH); // pull up to avoid interrupts without sensor
+    attachInterrupt(digitalPinToInterrupt(this->pirPin_u8), 
+                                            Pir::UpdatePirState, CHANGE);
+    if(0xff != this->ledPin_u8)
+    {
+      pinMode(this->ledPin_u8, OUTPUT);
+      digitalWrite(this->ledPin_u8, HIGH);
+    }
     this->isInitialized_bol = true;
-    p_trace->println(trace_INFO_MSG, "Single relay initialized");
-    pinMode(this->pin_u8, OUTPUT);
-    //this->setRelay();
-    this->TurnRelayOff();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -132,25 +160,14 @@ void SingleRelay::Initialize()
  * @param     dev_p      client device id for building the mqtt topics
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
+void Pir::Reconnect(PubSubClient *client_p, const char *dev_p)
 {
     if(NULL != client_p)
     {
         this->dev_p = dev_p;
         this->isConnected_bol = true;
-        p_trace->println(trace_INFO_MSG, "Single relay reconnected");
+        p_trace->println(trace_INFO_MSG, "Pir reconnected");
         // ... and resubscribe
-        // toggle relay
-        client_p->subscribe(build_topic(MQTT_SUB_TOGGLE));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_TOGGLE));
-        // change relay state with payload
-        client_p->subscribe(build_topic(MQTT_SUB_BUTTON));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 2: ");
-        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_BUTTON));
-        client_p->loop();
     }
     else
     {
@@ -170,45 +187,15 @@ void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
  * @param     p_payload  attached payload message
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
+void Pir::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
 {
     if(true == this->isConnected_bol)
     {
-        // received toggle relay mqtt topic
-        if (String(build_topic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
-        {
-            p_trace->println(trace_INFO_MSG, "Single relay mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
-            this->ToggleRelay();
-        }
-        // execute command to switch on/off the relay
-        else if (String(build_topic(MQTT_SUB_BUTTON)).equals(p_topic)) 
-        {
-            p_trace->println(trace_INFO_MSG, "Single relay mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
-            // test if the payload is equal to "ON" or "OFF"
-            if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
-            {
-                this->relayState_bol = true;
-                this->setRelay();  
-            }
-            else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
-            {
-                this->relayState_bol = false;
-                this->setRelay();
-            }
-            else
-            {
-                p_trace->print(trace_ERROR_MSG, "<<mqtt>> unexpected payload: "); 
-                p_trace->println(trace_PURE_MSG, p_payload);
-            }   
-        } 
+        
     }
     else
     {
-        p_trace->println(trace_ERROR_MSG, "connection failure in sonoff CallbackMqtt "); 
+        p_trace->println(trace_ERROR_MSG, "connection failure in pir CallbackMqtt "); 
     }
 }
 
@@ -219,7 +206,7 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
  * @param     client     mqtt client object
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
+bool Pir::ProcessPublishRequests(PubSubClient *client)
 {
     String tPayload;
     boolean ret = false;
@@ -229,20 +216,20 @@ bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
         // check if state has changed, than publish this state
         if(true == publishState_bol)
         {
-            p_trace->print(trace_INFO_MSG, "<<mqtt>> publish requested state: ");
-            p_trace->print(trace_PURE_MSG, MQTT_PUB_LIGHT_STATE);
+            p_trace->print(trace_INFO_MSG, "<<mqtt>> pir publish requested state: ");
+            p_trace->print(trace_PURE_MSG, MQTT_PUB_PIR_STATE);
             p_trace->print(trace_PURE_MSG, "  :  ");
-            if(true == this->relayState_bol)
+            if(true == this->pirState_bol)
             {
-              ret = client->publish(build_topic(MQTT_PUB_LIGHT_STATE), 
-                                        MQTT_PAYLOAD_CMD_ON, true);
-              p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_ON);
+              ret = client->publish(build_topic(MQTT_PUB_PIR_STATE), 
+                                        MQTT_PAYLOAD_MOTION, true);
+              p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_MOTION);
             }
             else
             {
-                ret = client->publish(build_topic(MQTT_PUB_LIGHT_STATE), 
-                                          MQTT_PAYLOAD_CMD_OFF, true); 
-                p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_OFF); 
+                ret = client->publish(build_topic(MQTT_PUB_PIR_STATE), 
+                                          MQTT_PAYLOAD_NO_MOTION, true); 
+                p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_NO_MOTION); 
             } 
             if(ret)
             {
@@ -258,92 +245,8 @@ bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
     return ret; 
 };
 
-/**---------------------------------------------------------------------------------------
- * @brief     This function toggles the relay
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    void
-*//*-----------------------------------------------------------------------------------*/
-void SingleRelay::ToggleRelay(void)
-{
-  if(true == this->relayState_bol)
-  {   
-    this->TurnRelayOff();  
-  }
-  else
-  {   
-    this->TurnRelayOn();
-  }
-}
-
 /****************************************************************************************/
 /* Private functions: */
-/**---------------------------------------------------------------------------------------
- * @brief     This function turns the relay off
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    void
-*//*-----------------------------------------------------------------------------------*/
-void SingleRelay::TurnRelayOff(void)
-{
-  if(true == this->isInitialized_bol)
-  {
-      this->relayState_bol = false;
-      if(true == this->invert_bol)
-      {
-        digitalWrite(this->pin_u8, HIGH);
-      }
-      else
-      {
-        digitalWrite(this->pin_u8, LOW);
-      }     
-      p_trace->println(trace_INFO_MSG, "relay turned off");
-      this->publishState_bol = true;
-  }
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function turns the relay on
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    void
-*//*-----------------------------------------------------------------------------------*/
-void SingleRelay::TurnRelayOn(void)
-{
-  if(true == this->isInitialized_bol)
-  {
-      this->relayState_bol = true;
-      if(true == this->invert_bol)
-      {
-        digitalWrite(this->pin_u8, LOW);
-      }
-      else
-      {
-        digitalWrite(this->pin_u8, HIGH);
-      }
-      p_trace->println(trace_INFO_MSG, "relay turned on");
-      this->publishState_bol = true;
-  }
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function sets the relay based on the state of the relayState_bol
- *            attribute
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void SingleRelay::setRelay(void)
-{
-  if(true == this->relayState_bol)
-  {
-    TurnRelayOn(); 
-  }
-  else
-  {
-    TurnRelayOff(); 
-  }
-}
 
 /**---------------------------------------------------------------------------------------
  * @brief     This function helps to build the complete topic including the 
@@ -353,9 +256,61 @@ void SingleRelay::setRelay(void)
  * @param     topic       pointer to topic string
  * @return    combined topic as char pointer, it uses buffer_stca to store the topic
 *//*-----------------------------------------------------------------------------------*/
-char* SingleRelay::build_topic(const char *topic) 
+char* Pir::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s/%s/%s", this->dev_p, this->channel_p, topic);
+  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
   return buffer_ca;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the external pir input and updates the value
+ *              of the state variable. If the value changed the corresponding
+ *              set function is called. Debouncing is also handled by this function
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Pir::SetSelf(Pir *mySelf_p)
+{
+    Pir::mySelf_p = mySelf_p;
+} 
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the external button input and updates the value
+ *              of the simpleLightState_bolst variable. If the value changed the corresponding
+ *              set function is called. Debouncing is also handled by this function
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Pir::UpdatePirState() 
+{
+  // check if we changed PIR state
+  if((HIGH == digitalRead(Pir::mySelf_p->pirPin_u8)) && (false == Pir::mySelf_p->pirState_bol))
+  {
+    Pir::mySelf_p->pirState_bol = true;
+    Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
+                                                "<<pir>> Motion detected");
+    Pir::mySelf_p->publishState_bol = true;  
+    if(0xff != Pir::mySelf_p->ledPin_u8)
+    {
+      digitalWrite(Pir::mySelf_p->ledPin_u8, LOW);
+    }                                              
+  }
+  else if((LOW == digitalRead(Pir::mySelf_p->pirPin_u8)) && (true == Pir::mySelf_p->pirState_bol))
+  {
+    Pir::mySelf_p->pirState_bol = false;
+    Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
+                                                "<<pir>> No Motion detected");
+    Pir::mySelf_p->publishState_bol = true; 
+    if(0xff != Pir::mySelf_p->ledPin_u8)
+    {
+      digitalWrite(Pir::mySelf_p->ledPin_u8, HIGH);
+    }                                            
+  }
+  else
+  {
+    Pir::mySelf_p->pirState_bol = false;  
+  }
 }
 

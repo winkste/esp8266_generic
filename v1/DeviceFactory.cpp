@@ -42,6 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "DhtSensor.h"
 #include "SingleRelay.h"
 #include "SonoffBasic.h"
+#include "Pir.h"
 
 /****************************************************************************************/
 /* Local constant defines */
@@ -51,6 +52,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define CAPABILITY_0x10                 0x10u
 #define CAPABILITY_FOUR_RELAY           0x08u
 #define CAPABILITY_DHT_SENSOR_BAT       0x04u
+#define CAPABILITY_PIR                  0x03u
 #define CAPABILITY_SONOFF_BASIC         0x02u
 #define CAPABILITY_DHT_SENSOR           0x01u
 #define CAPABILITY_SINGLE_RELAY         0x00u
@@ -69,6 +71,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define RELAY_PIN_TWO                   WEMOS_PIN_D2
 #define RELAY_PIN_THREE                 WEMOS_PIN_D3
 #define RELAY_PIN_FOUR                  WEMOS_PIN_D4
+
+#define PIR_INPUT_PIN                   WEMOS_PIN_D3
+#define PIR_LED_PIN                     WEMOS_PIN_D4
+
 
 #define MQTT_CHAN_ONE                   "relay_one"
 #define MQTT_CHAN_TWO                   "relay_two"
@@ -110,6 +116,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
     
     MqttDevice * device_p = NULL;
     SonoffBasic *sonoffDevice_p = NULL;
+    Pir *pirDevice_p = NULL;
 
     if(CAPABILITY_MQTT_TRACE == (type_u8 & CAPABILITY_MQTT_TRACE))
     {
@@ -135,6 +142,14 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
             sonoffDevice_p->SetSelf(sonoffDevice_p);
             device_p = sonoffDevice_p;
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated sonoff basic device");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_PIR:
+            //pirDevice_p = new Pir(trace_p);
+            pirDevice_p = new Pir(trace_p, PIR_INPUT_PIN, PIR_LED_PIN);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_DHT_SENSOR_BAT:
