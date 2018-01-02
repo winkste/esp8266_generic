@@ -44,6 +44,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *                                 add command in dht device to toggle power save mode
 * 007       10.12         SWI     rework single relay to support multi relays
 *                                 add device list in v1 to support multi devices
+* 008       03.01         SWI     changed config ssio
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H

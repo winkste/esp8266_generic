@@ -45,8 +45,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_PIR_STATE        "/pir/status"     //state of pir
 #define MQTT_PUB_PIR_GOTO_LOW     "/pir/motion"     // goto low state event  
 #define MQTT_PUB_PIR_GOTO_HIGH    "/pir/no_motion"  // goto high state event
-#define MQTT_PAYLOAD_MOTION       "MOTION"
-#define MQTT_PAYLOAD_NO_MOTION    "NO MOTION"
+#define MQTT_PAYLOAD_MOTION       "ON"
+#define MQTT_PAYLOAD_NO_MOTION    "OFF"
 
 #define PIR_DEBOUNCE              400  // ms debouncing for the botton
 

@@ -36,11 +36,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *****************************************************************************************/
 #include <ESP8266WiFi.h>
 #include "Trace.h"
+#include <PubSubClient.h>
+#include <LinkedList.h>
 
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
-
+#define MQTT_TRACE_TOPIC        "/trace"     //trace message
 /*****************************************************************************************
  * Local function like makros 
 *****************************************************************************************/
@@ -81,17 +83,54 @@ Trace::Trace(bool isActive_bol)
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     Full constructor
+ * @brief     Initializes the Mqtt structures for mqtt tracing
  * @author    winkste
  * @date      20 Okt. 2017
- * @param     isActive_bol     trace active or not
- * @param     channel_u16      channel identifier to allow later different trace channels
+ * @param     client_p     mqtt client
+ * @param     dev_p        device id of mqtt trace
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-Trace::Trace(bool isActive_bol, uint8_t channel_u8)
+void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
 {
-    this->isActive_bol = isActive_bol;
-    this->channel_u8 = channel_u8;
+  if((NULL != client_p) && (NULL != dev_p))
+  {
+    this->client_p = client_p;
+    this->dev_p = dev_p;
+    this->buffer_p = new LinkedList<String>();
+    this->channel_u8 = 1;
+  }
+  else
+  {
+    this->client_p = NULL;
+    this->dev_p = NULL; 
+  }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Switch trace to mqtt if the mqtt structures are valid
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::SwitchToMqtt()
+{
+  if((NULL != client_p) && (NULL != dev_p))
+  {
+    this->channel_u8 = 1;  
+  }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Initializes the Mqtt structures for mqtt tracing
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     client_p     mqtt client
+ * @param     dev_p        device id of mqtt trace
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::SwitchToSerial()
+{
+  this->channel_u8 = 0;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -126,10 +165,102 @@ void Trace::Initialize()
  * @param     msg_str         message
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::print(uint8_t type_u8, Generic *msg)
+{
+  //printType(type_u8);
+  Serial.print(msg);
+  
+}*/
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print line function for String parameter with new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::println(uint8_t type_u8, Generic *msg)
+{
+    //printType(type_u8);
+  Serial.println(msg);
+}*/
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print function for String parameter w/o new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::print(uint8_t type_u8, Generic &msg)
+{
+  //printType(type_u8);
+  Serial.print(msg);
+  
+}*/
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print line function for String parameter with new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::println(uint8_t type_u8, Generic &msg)
+{
+    //printType(type_u8);
+  Serial.println(msg);
+}*/
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print function for String parameter w/o new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::print(uint8_t type_u8, Generic msg)
+{
+  //printType(type_u8);
+  Serial.print(msg);
+  
+}*/
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print line function for String parameter with new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+/*template <typename Generic>
+void Trace::println(uint8_t type_u8, Generic msg)
+{
+    //printType(type_u8);
+  Serial.println(msg);
+}*/
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print function for String parameter w/o new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     msg_str         message
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
 void Trace::print(uint8_t type_u8, String msg_str)
 {
-  prepareMsg(type_u8, msg_str);
-  Serial.print(buffer_str);
+  this->prepareMsg(type_u8, String(msg_str));
+  this->printMsg();
   
 }
 
@@ -143,8 +274,8 @@ void Trace::print(uint8_t type_u8, String msg_str)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, String msg_str)
 {
-  prepareMsg(type_u8, String(msg_str));
-  Serial.println(buffer_str);
+  this->prepareMsg(type_u8, String(msg_str + "\n"));
+  this->printMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -157,8 +288,8 @@ void Trace::println(uint8_t type_u8, String msg_str)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::print(uint8_t type_u8, char *msg_pc)
 {
-  prepareMsg(type_u8, String(msg_pc));
-  Serial.print(buffer_str);
+  this->prepareMsg(type_u8, String(msg_pc));
+  this->printMsg();
   
 }
 
@@ -173,8 +304,8 @@ void Trace::print(uint8_t type_u8, char *msg_pc)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, char *msg_pc)
 {
-  prepareMsg(type_u8, String(msg_pc));
-  Serial.println(buffer_str);
+  this->prepareMsg(type_u8, String(msg_pc) + "\n");
+  this->printMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -187,8 +318,8 @@ void Trace::println(uint8_t type_u8, char *msg_pc)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::print(uint8_t type_u8, uint8_t value_u8)
 {
-  prepareMsg(type_u8, String(value_u8));
-  Serial.print(buffer_str);
+  this->prepareMsg(type_u8, String(value_u8));
+  this->printMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -202,8 +333,8 @@ void Trace::print(uint8_t type_u8, uint8_t value_u8)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, uint8_t value_u8)
 {
-  prepareMsg(type_u8, String(value_u8));
-  Serial.println(buffer_str);
+  this->prepareMsg(type_u8, String(value_u8 ) + "\n");
+  this->printMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -215,7 +346,29 @@ void Trace::println(uint8_t type_u8, uint8_t value_u8)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::PushToChannel()
 {
-    // not needed in this implementation
+  boolean ret = false;
+
+  if(0 == this->channel_u8)
+  {
+  }
+  else if(1 == this->channel_u8)
+  {
+    if((buffer_p != NULL) && (this->client_p != NULL) && (this->dev_p != NULL))
+    {
+      while(0 != buffer_p->size())
+      {
+        //Serial.print("--MQTT--");
+        //Serial.print(buffer_p->shift());
+        (void)client_p->publish(buildTopic(MQTT_TRACE_TOPIC), 
+                                      buildPayload(buffer_p->shift()), true);
+      }
+    }
+  }
+  else
+  {
+    // unsupported channel selected, set to default channel = serial
+    this->channel_u8 = 0;
+  }
 }
 
 /****************************************************************************************/
@@ -245,11 +398,61 @@ void Trace::prepareMsg(uint8_t type_u8, String msg_str)
       buffer_str = String("[WARN]" + msg_str);
       break;
     case trace_ERROR_MSG:
-    buffer_str = String("[ERROR]" + msg_str);
+      buffer_str = String("[ERROR]" + msg_str);
       break;
     default:
       buffer_str = String(msg_str);
       break;
   }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Depending on the channel, this function adds the message to the buffer
+ *            list or direct plots it to the serial interface
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::printMsg(void)
+{
+  switch(Trace::channel_u8)
+  {
+    case 0:
+      Serial.print(buffer_str);
+      break;
+    case 1:
+      buffer_p->add(buffer_str);
+      break;
+    default:
+      break;
+  }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function helps to build the complete topic including the 
+ *              custom device.
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     topic       pointer to topic string
+ * @return    combined topic as char pointer, it uses buffer_stca to store the topic
+*//*-----------------------------------------------------------------------------------*/
+char* Trace::buildTopic(const char *topic) 
+{
+  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  return buffer_ca;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function converts the payload string to a char pointer, the char 
+ *            buffer is part of the object
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     payload       pointer to payload string
+ * @return    pointer to the payload string
+*//*-----------------------------------------------------------------------------------*/
+char* Trace::buildPayload(String payload) 
+{
+  payload.toCharArray(payload_ca, payload.length());
+  return payload_ca;
 }
 

@@ -86,7 +86,7 @@ static char ssid_stca[60];
 static WiFiClient            wifiClient_sts;
 static PubSubClient          client_sts(wifiClient_sts);
 static mqttData_t            mqttData_sts;
-static Trace                 trace_st(true, 0);
+static Trace                 trace_st(true);
 static DeviceFactory         factory_st(&trace_st);
 //static MqttDevice            *device_pst = NULL;
 static LinkedList<MqttDevice*> *deviceList_pst = NULL;
@@ -98,20 +98,11 @@ static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capabili
 static WiFiManagerParameter  wifiManagerParamMqttClientShort_sts("sid", "mqtt short id", "devXX", 6);
 static WiFiManagerParameter  wifiManagerParamMqttServerLogin_sts("login", "mqtt login", "", 15);
 static WiFiManagerParameter  wifiManagerParamMqttServerPw_sts("pw", "mqtt pw", "", 15);
-/*
-static WiFiManagerParameter  wifiManagerParamMqttServerId_sts("mq_ip", "mqtt server ip", &mqttData_sts.server_ip[0], 15);
-static WiFiManagerParameter  wifiManagerParamMqttServerPort_sts("mq_port", "mqtt server port", &mqttData_sts.server_port[0], 5);
-static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capability Bit0 = n/a, Bit1 = n/a, Bit2 = n/a", &mqttData_sts.cap[0], 2);
-static WiFiManagerParameter  wifiManagerParamMqttClientShort_sts("sid", "mqtt short id", &mqttData_sts.dev_short[0], 6);
-static WiFiManagerParameter  wifiManagerParamMqttServerLogin_sts("login", "mqtt login", &mqttData_sts.login[0], 15);
-static WiFiManagerParameter  wifiManagerParamMqttServerPw_sts("pw", "mqtt pw", &mqttData_sts.pw[0], 15);
-*/
+
 static uint32_t             timerRepubAvoid_u32st = 0;
 static uint32_t             timerLastPub_u32st = 0;
 static boolean              publishInfo_bolst = false;
 static boolean              startWifiConfig_bolst = false;
-
-
 
 /*****************************************************************************************
 * Global functions (unlimited visibility): 
@@ -250,6 +241,7 @@ void reconnect()
     trace_st.println(trace_PURE_MSG, mqttData_sts.dev_short);
     if(client_sts.connect(mqttData_sts.dev_short, mqttData_sts.login, mqttData_sts.pw)) 
     {
+      //trace_st.InitializeMqtt(&client_sts, mqttData_sts.dev_short);
       trace_st.println(trace_INFO_MSG, "<<mqtt>> connected");
       client_sts.loop();
       trace_st.print(trace_INFO_MSG,"<<mqtt>> subscribed generic: ");
@@ -524,6 +516,8 @@ void loopCallback()
     processPublishRequests();
     timerRepubAvoid_u32st = millis();
     timerLastPub_u32st = millis();
+
+    trace_st.PushToChannel();
   }
 
   // check for a re-configuration trigger

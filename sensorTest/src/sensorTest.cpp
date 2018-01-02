@@ -15,6 +15,13 @@
 
 using namespace std;
 
+
+template <typename T> // this is the template parameter declaration
+T max(T x, T y)
+{
+    return (x > y) ? x : y;
+}
+
 int main()
 {
     TraceSerial myLogger(true, 0);

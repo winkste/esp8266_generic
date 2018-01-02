@@ -33,6 +33,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Imported header files: */
 #include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include <LinkedList.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -63,10 +65,27 @@ class Trace
         /* Public function definitions: */
         Trace();
         Trace(bool isActive_bol);
-        Trace(bool isActive_bol, uint8_t channel_u8);
+        void InitializeMqtt(PubSubClient *client_p, const char *dev_p);
+        void SwitchToMqtt();
+        void SwitchToSerial();
         void PushToChannel();
         void Initialize();
+        //boolean ConfigMqttTrace(PubSubClient *client_p, const char *dev_p);
+        //boolean SwitchChannel(uint8_t channel_u8);
         virtual ~Trace();
+        /*template <typename Generic>
+        void print(uint8_t type_u8, Generic *msg);
+        template <typename Generic>
+        void println(uint8_t type_u8, Generic *msg);
+        template <typename Generic>
+        void print(uint8_t type_u8, Generic &msg);
+        template <typename Generic>
+        void println(uint8_t type_u8, Generic &msg);
+        template <typename Generic>
+        void print(uint8_t type_u8, Generic msg);
+        template <typename Generic>
+        void println(uint8_t type_u8, Generic msg);*/
+        
         void print(uint8_t type_u8, char * msg_pc);
         void println(uint8_t type_u8, char * msg_pc);
         void print(uint8_t type_u8, String msg_str);
@@ -80,10 +99,18 @@ class Trace
         bool isActive_bol;
         uint8_t channel_u8;
         String buffer_str;
+        PubSubClient *client_p; 
+        const char *dev_p;
+        LinkedList<String> *buffer_p;
+        char buffer_ca[70];
+        char payload_ca[150];
         
         /********************************************************************************/
         /* Private function definitions: */
         void prepareMsg(uint8_t type_u8, String msg_str);
+        void printMsg(void);
+        char* buildTopic(const char *topic);
+        char* buildPayload(String payload); 
 };
 
 #endif /* TRACE_H_ */

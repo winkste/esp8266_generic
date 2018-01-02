@@ -51,6 +51,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define CAPABILITY_0x20                 0x20u
 #define CAPABILITY_0x10                 0x10u
 #define CAPABILITY_FOUR_RELAY           0x08u
+#define CAPABILITY_PIR_RELAY            0x05u
 #define CAPABILITY_DHT_SENSOR_BAT       0x04u
 #define CAPABILITY_PIR                  0x03u
 #define CAPABILITY_SONOFF_BASIC         0x02u
@@ -171,13 +172,20 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device four");
             deviceList_p->add(device_p);
             break;
+        case CAPABILITY_PIR_RELAY:
+            device_p = new SingleRelay(trace_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device");
+            deviceList_p->add(device_p);
+            pirDevice_p = new Pir(trace_p, PIR_INPUT_PIN, PIR_LED_PIN);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
+            deviceList_p->add(device_p);
+            break;
         default:
             break;
     }
 
-    
-
-    //return(device_p);
     return(deviceList_p);
 }
 

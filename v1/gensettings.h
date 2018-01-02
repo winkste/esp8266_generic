@@ -32,7 +32,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Global constant defines: */
-#define CONFIG_SSID               "OPEN_ESP_CONFIG_" // SSID of the configuration mode
+#define CONFIG_SSID               "ESP_CFG_V7_" // SSID of the configuration mode
 #define MAX_AP_TIME               300 // restart eps after 300 sec in config mode
 #define CONNECT_RETRIES           5 
 
