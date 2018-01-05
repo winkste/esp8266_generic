@@ -241,7 +241,7 @@ void reconnect()
     trace_st.println(trace_PURE_MSG, mqttData_sts.dev_short);
     if(client_sts.connect(mqttData_sts.dev_short, mqttData_sts.login, mqttData_sts.pw)) 
     {
-      //trace_st.InitializeMqtt(&client_sts, mqttData_sts.dev_short);
+      trace_st.InitializeMqtt(&client_sts, mqttData_sts.dev_short);
       trace_st.println(trace_INFO_MSG, "<<mqtt>> connected");
       client_sts.loop();
       trace_st.print(trace_INFO_MSG,"<<mqtt>> subscribed generic: ");

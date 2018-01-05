@@ -97,7 +97,6 @@ void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
     this->client_p = client_p;
     this->dev_p = dev_p;
     this->buffer_p = new LinkedList<String>();
-    this->channel_u8 = 1;
   }
   else
   {

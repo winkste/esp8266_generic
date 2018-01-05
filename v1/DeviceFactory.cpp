@@ -123,7 +123,13 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
     {
         // mqtt trace requested
         type_u8 = type_u8 - CAPABILITY_MQTT_TRACE;
-        // todo switch to mqtt trace
+        // switch to mqtt trace
+        this->trace_p->SwitchToMqtt();
+    }
+    else
+    {
+      // switch to serial
+      this->trace_p->SwitchToSerial();
     }
 
     switch(type_u8)
