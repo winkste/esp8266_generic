@@ -138,7 +138,7 @@ Pir::~Pir()
 *//*-----------------------------------------------------------------------------------*/
 void Pir::Initialize()
 {
-    p_trace->println(trace_INFO_MSG, "Pir initialized");
+    p_trace->println(trace_INFO_MSG, "<<pir>>Pir initialized");
 
     pinMode(this->pirPin_u8, INPUT);
     digitalWrite(this->pirPin_u8, HIGH); // pull up to avoid interrupts without sensor
@@ -166,14 +166,14 @@ void Pir::Reconnect(PubSubClient *client_p, const char *dev_p)
     {
         this->dev_p = dev_p;
         this->isConnected_bol = true;
-        p_trace->println(trace_INFO_MSG, "Pir reconnected");
+        p_trace->println(trace_INFO_MSG, "<<pir>> reconnected");
         // ... and resubscribe
     }
     else
     {
         // failure, not connected
         p_trace->println(trace_ERROR_MSG, 
-                                "uninizialized MQTT client in single relay detected");
+                                "<<pir>>uninizialized MQTT client in single relay detected");
         this->isConnected_bol = false;
     }
 }
@@ -195,7 +195,7 @@ void Pir::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
     }
     else
     {
-        p_trace->println(trace_ERROR_MSG, "connection failure in pir CallbackMqtt "); 
+        p_trace->println(trace_ERROR_MSG, "<<pir>>connection failure in pir CallbackMqtt "); 
     }
 }
 
@@ -216,7 +216,7 @@ bool Pir::ProcessPublishRequests(PubSubClient *client)
         // check if state has changed, than publish this state
         if(true == publishState_bol)
         {
-            p_trace->print(trace_INFO_MSG, "<<mqtt>> pir publish requested state: ");
+            p_trace->print(trace_INFO_MSG, "<<pir>> publish requested state: ");
             p_trace->print(trace_PURE_MSG, MQTT_PUB_PIR_STATE);
             p_trace->print(trace_PURE_MSG, "  :  ");
             if(true == this->pirState_bol)
@@ -240,7 +240,7 @@ bool Pir::ProcessPublishRequests(PubSubClient *client)
     else
     {
         p_trace->println(trace_ERROR_MSG, 
-                              "connection failure in relay ProcessPublishRequests "); 
+                              "<<pir>>connection failure in relay ProcessPublishRequests "); 
     }
     return ret; 
 };
@@ -290,7 +290,7 @@ void Pir::UpdatePirState()
   {
     Pir::mySelf_p->pirState_bol = true;
     Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
-                                                "<<pir>> Motion detected");
+                                                "<<pir>>Motion detected");
     Pir::mySelf_p->publishState_bol = true;  
     if(0xff != Pir::mySelf_p->ledPin_u8)
     {
@@ -301,7 +301,7 @@ void Pir::UpdatePirState()
   {
     Pir::mySelf_p->pirState_bol = false;
     Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
-                                                "<<pir>> No Motion detected");
+                                                "<<pir>>No Motion detected");
     Pir::mySelf_p->publishState_bol = true; 
     if(0xff != Pir::mySelf_p->ledPin_u8)
     {

@@ -55,11 +55,12 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
 // Buffer to hold data from the WiFi manager for mqtt login
-typedef struct mqttData_tag{ //80 byte
+typedef struct mqttData_tag{ //xx byte
   char login[16];
   char pw[16];
   char dev_short[6];
-  char cap[2]; // capability
+  char cap[4]; // capability
+  char chan[4]; // capability
   char server_ip[16];
   char server_port[6];
 }mqttData_t;

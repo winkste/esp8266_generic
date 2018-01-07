@@ -97,6 +97,9 @@ void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
     this->client_p = client_p;
     this->dev_p = dev_p;
     this->buffer_p = new LinkedList<String>();
+    this->println(trace_INFO_MSG, "<<trace>>MQTT channel configured");
+    this->print(trace_INFO_MSG, "<<trace>>MQTT topic:");
+    this->println(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC));
   }
   else
   {
@@ -420,6 +423,7 @@ void Trace::printMsg(void)
       Serial.print(buffer_str);
       break;
     case 1:
+      Serial.print(buffer_str);
       buffer_p->add(buffer_str);
       break;
     default:

@@ -94,7 +94,8 @@ static WiFiManager           wifiManager_sts;
 // prepare wifimanager variables
 static WiFiManagerParameter  wifiManagerParamMqttServerId_sts("mq_ip", "mqtt server ip", "", 15);
 static WiFiManagerParameter  wifiManagerParamMqttServerPort_sts("mq_port", "mqtt server port", "1883", 5);
-static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capability Bit0 = n/a, Bit1 = n/a, Bit2 = n/a", "", 2);
+static WiFiManagerParameter  wifiManagerParamMqttCapability_sts("cap", "Capability Bit0 = n/a, Bit1 = n/a, Bit2 = n/a", "", 4);
+static WiFiManagerParameter  wifiManagerParamMqttChannel_sts("chan", "0 = serial, 1 = mqtt", "", 4);
 static WiFiManagerParameter  wifiManagerParamMqttClientShort_sts("sid", "mqtt short id", "devXX", 6);
 static WiFiManagerParameter  wifiManagerParamMqttServerLogin_sts("login", "mqtt login", "", 15);
 static WiFiManagerParameter  wifiManagerParamMqttServerPw_sts("pw", "mqtt pw", "", 15);
@@ -124,7 +125,7 @@ boolean processPublishRequests(void)
   if(true == publishInfo_bolst)
   {
     trace_st.println(trace_PURE_MSG, "");
-    trace_st.print(trace_INFO_MSG, "[mqtt] publish requested info: ");
+    trace_st.print(trace_INFO_MSG, "<<mqtt>>publish requested info: ");
     trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
     trace_st.println(trace_PURE_MSG, FW_VERSION);
     trace_st.println(trace_INFO_MSG, FW_DESCRIPTION);
@@ -172,7 +173,7 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
   }
   
   // print received topic and payload
-  trace_st.print(trace_INFO_MSG, "[mqtt] message received: ");
+  trace_st.print(trace_INFO_MSG, "<<mqtt>> message received: ");
   trace_st.print(trace_PURE_MSG, p_topic);
   trace_st.print(trace_PURE_MSG, "   ");
   trace_st.println(trace_PURE_MSG, payload);
@@ -192,7 +193,7 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
     } 
     else
     {
-      trace_st.print(trace_ERROR_MSG, "[mqtt] unexpected command: "); 
+      trace_st.print(trace_ERROR_MSG, "<<mqtt>> unexpected command: "); 
       trace_st.println(trace_PURE_MSG, payload);
     }
   }
@@ -205,7 +206,7 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
     }
     else
     {
-      trace_st.print(trace_ERROR_MSG, "[mqtt] unexpected command: "); 
+      trace_st.print(trace_ERROR_MSG, "<<mqtt>> unexpected command: "); 
       trace_st.println(trace_PURE_MSG, payload);
     }   
   }
@@ -242,6 +243,7 @@ void reconnect()
     if(client_sts.connect(mqttData_sts.dev_short, mqttData_sts.login, mqttData_sts.pw)) 
     {
       trace_st.InitializeMqtt(&client_sts, mqttData_sts.dev_short);
+      factory_st.SelectTraceChannel(atoi(&mqttData_sts.chan[0]));
       trace_st.println(trace_INFO_MSG, "<<mqtt>> connected");
       client_sts.loop();
       trace_st.print(trace_INFO_MSG,"<<mqtt>> subscribed generic: ");
@@ -275,7 +277,7 @@ void reconnect()
     } 
     else 
     {
-      trace_st.print(trace_ERROR_MSG, "failed, rc="); 
+      trace_st.print(trace_ERROR_MSG, "<<mqtt>>failed, rc="); 
       trace_st.print(trace_PURE_MSG, String(client_sts.state())); 
       trace_st.println(trace_PURE_MSG, ", try again in 5 seconds");
       // Wait 5 seconds before retrying
@@ -284,7 +286,7 @@ void reconnect()
     tries++;
     if(tries >= CONNECT_RETRIES)
     {
-      trace_st.println(trace_ERROR_MSG, "Can't connect, starting AP");
+      trace_st.println(trace_ERROR_MSG, "<<mqtt>>Can't connect, starting AP");
       wifiManager_sts.startConfigPortal(build_ssid(CONFIG_SSID)); // needs to be tested!
     }
   }
@@ -302,6 +304,7 @@ void configModeCallback(WiFiManager *myWiFiManager)
   wifiManager_sts.addParameter(&wifiManagerParamMqttServerId_sts);
   wifiManager_sts.addParameter(&wifiManagerParamMqttServerPort_sts);
   wifiManager_sts.addParameter(&wifiManagerParamMqttCapability_sts);
+  wifiManager_sts.addParameter(&wifiManagerParamMqttChannel_sts);
   wifiManager_sts.addParameter(&wifiManagerParamMqttClientShort_sts);
   wifiManager_sts.addParameter(&wifiManagerParamMqttServerLogin_sts);
   wifiManager_sts.addParameter(&wifiManagerParamMqttServerPw_sts);
@@ -309,7 +312,7 @@ void configModeCallback(WiFiManager *myWiFiManager)
   wifiManager_sts.setAPStaticIPConfig(IPAddress(192,168,4,1), 
                                         IPAddress(192,168,4,255), 
                                         IPAddress(255,255,255,0));
-  trace_st.println(trace_INFO_MSG, "entered config mode");
+  trace_st.println(trace_INFO_MSG, "<<wifiMgr>>entered config mode");
 }
 
 /**---------------------------------------------------------------------------------------
@@ -324,6 +327,7 @@ void saveConfigCallback()
   sprintf(mqttData_sts.login, "%s", wifiManagerParamMqttServerLogin_sts.getValue());
   sprintf(mqttData_sts.pw, "%s", wifiManagerParamMqttServerPw_sts.getValue());
   sprintf(mqttData_sts.cap, "%s", wifiManagerParamMqttCapability_sts.getValue());
+  sprintf(mqttData_sts.chan, "%s", wifiManagerParamMqttChannel_sts.getValue());
   sprintf(mqttData_sts.server_port, "%s", wifiManagerParamMqttServerPort_sts.getValue());
   sprintf(mqttData_sts.dev_short, "%s", wifiManagerParamMqttClientShort_sts.getValue());
   trace_st.println(trace_INFO_MSG, "=== Saving parameters: ===");
@@ -339,18 +343,21 @@ void saveConfigCallback()
   trace_st.println(trace_PURE_MSG, mqttData_sts.dev_short);
   trace_st.print(trace_INFO_MSG, "capabilities: ");   
   trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
+  trace_st.print(trace_INFO_MSG, "trace channel: ");   
+  trace_st.println(trace_PURE_MSG, mqttData_sts.chan);
   trace_st.println(trace_INFO_MSG, "=== End of parameters ==="); 
-  char* temp=(char*) &mqttData_sts;
-  for(int i=0; i<sizeof(mqttData_sts); i++){
-    EEPROM.write(i,*temp);
-    //Serial.print(*temp);
+  
+  char* temp = (char*) &mqttData_sts;
+  for(int i = 0; i < sizeof(mqttData_sts); i++){
+    EEPROM.write(i, *temp);
     temp++;
   }
   EEPROM.commit();
 
   wifiManagerParamMqttServerId_sts.setDefaultValue(&mqttData_sts.server_ip[0], 15);
   wifiManagerParamMqttServerPort_sts.setDefaultValue(&mqttData_sts.server_port[0], 5);
-  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 2);
+  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 4);
+  wifiManagerParamMqttChannel_sts.setDefaultValue(&mqttData_sts.chan[0], 4);
   wifiManagerParamMqttClientShort_sts.setDefaultValue(&mqttData_sts.dev_short[0], 6);
   wifiManagerParamMqttServerLogin_sts.setDefaultValue(&mqttData_sts.login[0], 15);
   wifiManagerParamMqttServerPw_sts.setDefaultValue(&mqttData_sts.pw[0], 15);
@@ -381,7 +388,8 @@ void loadConfig()
 
   wifiManagerParamMqttServerId_sts.setDefaultValue(&mqttData_sts.server_ip[0], 15);
   wifiManagerParamMqttServerPort_sts.setDefaultValue(&mqttData_sts.server_port[0], 5);
-  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 2);
+  wifiManagerParamMqttCapability_sts.setDefaultValue(&mqttData_sts.cap[0], 4);
+  wifiManagerParamMqttChannel_sts.setDefaultValue(&mqttData_sts.chan[0], 4);
   wifiManagerParamMqttClientShort_sts.setDefaultValue(&mqttData_sts.dev_short[0], 6);
   wifiManagerParamMqttServerLogin_sts.setDefaultValue(&mqttData_sts.login[0], 15);
   wifiManagerParamMqttServerPw_sts.setDefaultValue(&mqttData_sts.pw[0], 15);
@@ -398,12 +406,14 @@ void loadConfig()
   trace_st.print(trace_INFO_MSG, "mqtt dev short: "); 
   trace_st.println(trace_PURE_MSG, mqttData_sts.dev_short);
   trace_st.print(trace_INFO_MSG, "capabilities: ");   
-  trace_st.println(trace_PURE_MSG, mqttData_sts.cap);
+  trace_st.print(trace_PURE_MSG, mqttData_sts.cap);
+  trace_st.println(trace_PURE_MSG, atoi(&mqttData_sts.cap[0]));
+  trace_st.print(trace_INFO_MSG, "channel: ");
+  trace_st.print(trace_PURE_MSG, mqttData_sts.chan);
+  trace_st.println(trace_PURE_MSG, atoi(&mqttData_sts.chan[0]));
 
-  // capabilities
+  // generate devices according to the selected capabilities
   deviceList_pst = factory_st.GenerateDevice(atoi(&mqttData_sts.cap[0]));
-  //trace_st.println(trace_INFO_MSG, atoi(&mqttData_sts.cap[0]));
-  // capabilities
   
   trace_st.println(trace_INFO_MSG, "=== End of parameters ===");
 }

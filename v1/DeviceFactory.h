@@ -58,7 +58,8 @@ class DeviceFactory
         /********************************************************************************/
         /* Public function definitions: */
         DeviceFactory(Trace *p_trace);
-        LinkedList<MqttDevice*> * GenerateDevice(uint8_t type_u8);
+        void SelectTraceChannel(uint8_t chan_u8);
+        LinkedList<MqttDevice*> * GenerateDevice(uint8_t cap_u8);
         virtual
         ~DeviceFactory();
     private:

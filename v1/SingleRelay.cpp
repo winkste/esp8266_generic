@@ -118,7 +118,7 @@ SingleRelay::~SingleRelay()
 void SingleRelay::Initialize()
 {
     this->isInitialized_bol = true;
-    p_trace->println(trace_INFO_MSG, "Single relay initialized");
+    p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay initialized");
     pinMode(this->pin_u8, OUTPUT);
     //this->setRelay();
     this->TurnRelayOff();
@@ -138,17 +138,17 @@ void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
     {
         this->dev_p = dev_p;
         this->isConnected_bol = true;
-        p_trace->println(trace_INFO_MSG, "Single relay reconnected");
+        p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay reconnected");
         // ... and resubscribe
         // toggle relay
         client_p->subscribe(build_topic(MQTT_SUB_TOGGLE));  
         client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
+        p_trace->print(trace_INFO_MSG, "<<singRel>> subscribed 1: ");
         p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_TOGGLE));
         // change relay state with payload
         client_p->subscribe(build_topic(MQTT_SUB_BUTTON));  
         client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 2: ");
+        p_trace->print(trace_INFO_MSG, "<<singRel>> subscribed 2: ");
         p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_BUTTON));
         client_p->loop();
     }
@@ -156,7 +156,7 @@ void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
     {
         // failure, not connected
         p_trace->println(trace_ERROR_MSG, 
-                                "uninizialized MQTT client in single relay detected");
+                                "<<singRel>>uninizialized MQTT client in single relay detected");
         this->isConnected_bol = false;
     }
 }
@@ -177,7 +177,7 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
         // received toggle relay mqtt topic
         if (String(build_topic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
         {
-            p_trace->println(trace_INFO_MSG, "Single relay mqtt callback");
+            p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay mqtt callback");
             p_trace->println(trace_INFO_MSG, p_topic);
             p_trace->println(trace_INFO_MSG, p_payload);
             this->ToggleRelay();
@@ -185,7 +185,7 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
         // execute command to switch on/off the relay
         else if (String(build_topic(MQTT_SUB_BUTTON)).equals(p_topic)) 
         {
-            p_trace->println(trace_INFO_MSG, "Single relay mqtt callback");
+            p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay mqtt callback");
             p_trace->println(trace_INFO_MSG, p_topic);
             p_trace->println(trace_INFO_MSG, p_payload);
             // test if the payload is equal to "ON" or "OFF"
@@ -201,14 +201,14 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
             }
             else
             {
-                p_trace->print(trace_ERROR_MSG, "<<mqtt>> unexpected payload: "); 
+                p_trace->print(trace_ERROR_MSG, "<<singRel>> unexpected payload: "); 
                 p_trace->println(trace_PURE_MSG, p_payload);
             }   
         } 
     }
     else
     {
-        p_trace->println(trace_ERROR_MSG, "connection failure in sonoff CallbackMqtt "); 
+        p_trace->println(trace_ERROR_MSG, "<<singRel>>connection failure in sonoff CallbackMqtt "); 
     }
 }
 
@@ -229,8 +229,8 @@ bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
         // check if state has changed, than publish this state
         if(true == publishState_bol)
         {
-            p_trace->print(trace_INFO_MSG, "<<mqtt>> publish requested state: ");
-            p_trace->print(trace_PURE_MSG, MQTT_PUB_LIGHT_STATE);
+            p_trace->print(trace_INFO_MSG, "<<singRel>> publish requested state: ");
+            p_trace->print(trace_PURE_MSG, build_topic(MQTT_PUB_LIGHT_STATE));
             p_trace->print(trace_PURE_MSG, "  :  ");
             if(true == this->relayState_bol)
             {
@@ -297,7 +297,7 @@ void SingleRelay::TurnRelayOff(void)
       {
         digitalWrite(this->pin_u8, LOW);
       }     
-      p_trace->println(trace_INFO_MSG, "relay turned off");
+      p_trace->println(trace_INFO_MSG, "<<singRel>>relay turned off");
       this->publishState_bol = true;
   }
 }
@@ -321,7 +321,7 @@ void SingleRelay::TurnRelayOn(void)
       {
         digitalWrite(this->pin_u8, HIGH);
       }
-      p_trace->println(trace_INFO_MSG, "relay turned on");
+      p_trace->println(trace_INFO_MSG, "<<singRel>>relay turned on");
       this->publishState_bol = true;
   }
 }

@@ -46,7 +46,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define CAPABILITY_MQTT_TRACE           0x80u
+#define CAPABILITY_MQTT_TRACE           0x01u
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
 #define CAPABILITY_0x10                 0x10u
@@ -105,13 +105,38 @@ DeviceFactory::DeviceFactory(Trace * p_trace)
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     Method to check the trace channel according to the capabilities
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     cap_u8    capabilities
+ * @return    a MqttDevice if successful, else NULL
+*//*-----------------------------------------------------------------------------------*/
+void DeviceFactory::SelectTraceChannel(uint8_t chan_u8)
+{
+    if(CAPABILITY_MQTT_TRACE == chan_u8)
+    {
+        trace_p->print(trace_INFO_MSG, "<<devMgr>> trace switch received to MQTT:");
+        trace_p->println(trace_PURE_MSG, chan_u8);
+        // switch to mqtt trace
+        this->trace_p->SwitchToMqtt();
+    }
+    else
+    {
+      trace_p->print(trace_INFO_MSG, "<<devMgr>> trace switch received to serial:");
+      trace_p->println(trace_PURE_MSG, chan_u8);
+      // switch to serial
+      this->trace_p->SwitchToSerial();
+    }
+}
+
+/**---------------------------------------------------------------------------------------
  * @brief     Method to generate devices based on the specified type
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     type_u8     type of device
  * @return    a MqttDevice if successful, else NULL
 *//*-----------------------------------------------------------------------------------*/
-LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
+LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
 {
     LinkedList<MqttDevice*> *deviceList_p = new LinkedList<MqttDevice*>();
     
@@ -119,20 +144,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t type_u8)
     SonoffBasic *sonoffDevice_p = NULL;
     Pir *pirDevice_p = NULL;
 
-    if(CAPABILITY_MQTT_TRACE == (type_u8 & CAPABILITY_MQTT_TRACE))
-    {
-        // mqtt trace requested
-        type_u8 = type_u8 - CAPABILITY_MQTT_TRACE;
-        // switch to mqtt trace
-        this->trace_p->SwitchToMqtt();
-    }
-    else
-    {
-      // switch to serial
-      this->trace_p->SwitchToSerial();
-    }
-
-    switch(type_u8)
+    switch(cap_u8)
     {
         case CAPABILITY_SINGLE_RELAY:
             device_p = new SingleRelay(trace_p);
