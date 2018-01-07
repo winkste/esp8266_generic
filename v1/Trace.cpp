@@ -42,7 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
-#define MQTT_TRACE_TOPIC        "/trace"     //trace message
+#define MQTT_TRACE_TOPIC        "trace/"     //trace message
 /*****************************************************************************************
  * Local function like makros 
 *****************************************************************************************/
@@ -276,8 +276,8 @@ void Trace::print(uint8_t type_u8, String msg_str)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, String msg_str)
 {
-  this->prepareMsg(type_u8, String(msg_str + "\n"));
-  this->printMsg();
+  this->prepareMsg(type_u8, String(msg_str));
+  this->printlnMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -306,8 +306,8 @@ void Trace::print(uint8_t type_u8, char *msg_pc)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, char *msg_pc)
 {
-  this->prepareMsg(type_u8, String(msg_pc) + "\n");
-  this->printMsg();
+  this->prepareMsg(type_u8, String(msg_pc));
+  this->printlnMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -335,8 +335,8 @@ void Trace::print(uint8_t type_u8, uint8_t value_u8)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::println(uint8_t type_u8, uint8_t value_u8)
 {
-  this->prepareMsg(type_u8, String(value_u8 ) + "\n");
-  this->printMsg();
+  this->prepareMsg(type_u8, String(value_u8 ));
+  this->printlnMsg();
 }
 
 /**---------------------------------------------------------------------------------------
@@ -391,19 +391,19 @@ void Trace::prepareMsg(uint8_t type_u8, String msg_str)
   switch(type_u8)
   {
     case trace_PURE_MSG:
-      buffer_str = String(msg_str);
+      buffer_str = buffer_str + String(msg_str);
       break;
     case trace_INFO_MSG:
-      buffer_str = String("[INFO]" + msg_str);
+      buffer_str = buffer_str + String("[INFO]" + msg_str);
       break;
     case trace_WARN_MSG:
-      buffer_str = String("[WARN]" + msg_str);
+      buffer_str = buffer_str + String("[WARN]" + msg_str);
       break;
     case trace_ERROR_MSG:
-      buffer_str = String("[ERROR]" + msg_str);
+      buffer_str = buffer_str + String("[ERROR]" + msg_str);
       break;
     default:
-      buffer_str = String(msg_str);
+      buffer_str = buffer_str + String(msg_str);
       break;
   }
 }
@@ -421,14 +421,39 @@ void Trace::printMsg(void)
   {
     case 0:
       Serial.print(buffer_str);
+      buffer_str = "";
       break;
     case 1:
-      Serial.print(buffer_str);
+      // wait until message is complete
+      break;
+    default:
+      break;
+  }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Depending on the channel, this function adds the message to the buffer
+ *            list or direct plots it to the serial interface
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::printlnMsg(void)
+{
+  switch(Trace::channel_u8)
+  {
+    case 0:
+      Serial.println(buffer_str);
+      break;
+    case 1:
+      buffer_str = buffer_str + "\n";
       buffer_p->add(buffer_str);
       break;
     default:
       break;
   }
+
+  buffer_str = "";
 }
 
 /**---------------------------------------------------------------------------------------
@@ -441,7 +466,7 @@ void Trace::printMsg(void)
 *//*-----------------------------------------------------------------------------------*/
 char* Trace::buildTopic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  sprintf(buffer_ca, "%s%s", topic, this->dev_p);
   return buffer_ca;
 }
 

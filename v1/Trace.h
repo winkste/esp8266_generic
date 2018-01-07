@@ -109,6 +109,7 @@ class Trace
         /* Private function definitions: */
         void prepareMsg(uint8_t type_u8, String msg_str);
         void printMsg(void);
+        void printlnMsg(void);
         char* buildTopic(const char *topic);
         char* buildPayload(String payload); 
 };

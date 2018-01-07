@@ -177,17 +177,17 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
         // received toggle relay mqtt topic
         if (String(build_topic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
         {
-            p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
+            p_trace->print(trace_INFO_MSG, "<<singRel>>mqtt callback: ");
+            p_trace->println(trace_PURE_MSG, p_topic);
             this->ToggleRelay();
         }
         // execute command to switch on/off the relay
         else if (String(build_topic(MQTT_SUB_BUTTON)).equals(p_topic)) 
         {
-            p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
+            p_trace->print(trace_INFO_MSG, "<<singRel>>mqtt callback: ");
+            p_trace->print(trace_PURE_MSG, p_topic);
+            p_trace->print(trace_PURE_MSG, " : ");
+            p_trace->println(trace_PURE_MSG, p_payload);
             // test if the payload is equal to "ON" or "OFF"
             if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
             {
