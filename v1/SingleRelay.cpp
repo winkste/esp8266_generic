@@ -355,7 +355,7 @@ void SingleRelay::SetRelay(void)
 *//*-----------------------------------------------------------------------------------*/
 char* SingleRelay::BuildSendTopic(const char *topic) 
 {
-  sprintf(buffer_ca, "std/s/%s/%s/%s", this->dev_p, this->channel_p, topic);
+  sprintf(buffer_ca, "std/%s/s/%s/%s", this->dev_p, this->channel_p, topic);
   return buffer_ca;
 }
 
@@ -369,7 +369,7 @@ char* SingleRelay::BuildSendTopic(const char *topic)
 *//*-----------------------------------------------------------------------------------*/
 char* SingleRelay::BuildReceiveTopic(const char *topic) 
 {
-  sprintf(buffer_ca, "std/r/%s/%s/%s", this->dev_p, this->channel_p, topic);
+  sprintf(buffer_ca, "std/%s/r/%s/%s", this->dev_p, this->channel_p, topic);
   return buffer_ca;
 }
 
