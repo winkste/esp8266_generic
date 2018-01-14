@@ -42,9 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define DEFAULT_PIR_INPUT_PIN     0  // D3
-#define MQTT_PUB_PIR_STATE        "/pir/status"     //state of pir
-#define MQTT_PUB_PIR_GOTO_LOW     "/pir/motion"     // goto low state event  
-#define MQTT_PUB_PIR_GOTO_HIGH    "/pir/no_motion"  // goto high state event
+#define MQTT_PUB_PIR_STATE        "/s/pir/status"     //state of pir
 #define MQTT_PAYLOAD_MOTION       "ON"
 #define MQTT_PAYLOAD_NO_MOTION    "OFF"
 
@@ -258,7 +256,7 @@ bool Pir::ProcessPublishRequests(PubSubClient *client)
 *//*-----------------------------------------------------------------------------------*/
 char* Pir::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
   return buffer_ca;
 }
 

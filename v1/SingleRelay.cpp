@@ -42,9 +42,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define RELAY_PIN                 5
-#define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "status" //state of relay
+#define MQTT_SUB_TOGGLE           "r/toggle" // command message for toggle command
+#define MQTT_SUB_BUTTON           "r/switch" // command message for button commands
+#define MQTT_PUB_LIGHT_STATE      "s/status" //state of relay
 #define MQTT_DEFAULT_CHAN         "relay_one"
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
@@ -355,7 +355,7 @@ void SingleRelay::setRelay(void)
 *//*-----------------------------------------------------------------------------------*/
 char* SingleRelay::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s/%s/%s", this->dev_p, this->channel_p, topic);
+  sprintf(buffer_ca, "std/%s/%s/%s", this->dev_p, this->channel_p, topic);
   return buffer_ca;
 }
 

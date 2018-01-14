@@ -428,7 +428,7 @@ void loadConfig()
 *//*-----------------------------------------------------------------------------------*/
 char* build_topic(const char *topic) 
 {
-  sprintf(buffer_stca, "%s%s", mqttData_sts.dev_short, topic);
+  sprintf(buffer_stca, "std/%s%s", mqttData_sts.dev_short, topic);
   return buffer_stca;
 }
 

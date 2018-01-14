@@ -54,13 +54,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
 #define POWER_SAVE_TIME           900l * MICROSEC_IN_SEC  // = 900 secs = 15mins power save
 
-#define MQTT_SUB_DHT_CMD          "/temp_hum/cmd" // command message for dht
+#define MQTT_SUB_DHT_CMD          "/r/temp_hum/cmd" // command message for dht
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
 
-#define MQTT_PUB_TEMPERATURE      "/temp_hum/temp" // temperature data
-#define MQTT_PUB_HUMIDITY         "/temp_hum/hum" // humidity data
-#define MQTT_PUB_BATTERY          "/temp_hum/bat" // battery capacity data
+#define MQTT_PUB_TEMPERATURE      "/s/temp_hum/temp" // temperature data
+#define MQTT_PUB_HUMIDITY         "/s/temp_hum/hum" // humidity data
+#define MQTT_PUB_BATTERY          "/s/temp_hum/bat" // battery capacity data
 #define MQTT_REPORT_INTERVAL      5000l //(ms) - 5 seconds between reports
 /****************************************************************************************/
 /* Local function like makros */
@@ -354,6 +354,6 @@ void DhtSensor::TurnDHTOff()
 *//*-----------------------------------------------------------------------------------*/
 char* DhtSensor::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
   return buffer_ca;
 }

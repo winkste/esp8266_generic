@@ -42,7 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
-#define MQTT_TRACE_TOPIC        "trace/"     //trace message
+#define MQTT_TRACE_TOPIC        "s/trace/"     //trace message
 /*****************************************************************************************
  * Local function like makros 
 *****************************************************************************************/
@@ -96,10 +96,13 @@ void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
   {
     this->client_p = client_p;
     this->dev_p = dev_p;
-    this->buffer_p = new LinkedList<String>();
+    //this->buffer_p = new LinkedList<String>();
+    this->msgList_p = new LinkedList<Message*>;
     this->println(trace_INFO_MSG, "<<trace>>MQTT channel configured");
-    this->print(trace_INFO_MSG, "<<trace>>MQTT topic:");
-    this->println(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC));
+    this->print(trace_INFO_MSG, "<<trace>>MQTT ERROR topic:");
+    this->print(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC, trace_ERROR_MSG));
+    this->print(trace_PURE_MSG," or ");
+    this->print(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC, trace_INFO_MSG));
   }
   else
   {
@@ -349,21 +352,22 @@ void Trace::println(uint8_t type_u8, uint8_t value_u8)
 void Trace::PushToChannel()
 {
   boolean ret = false;
+  Message *msg_p;
 
   if(0 == this->channel_u8)
   {
   }
   else if(1 == this->channel_u8)
   {
-    if((buffer_p != NULL) && (this->client_p != NULL) && (this->dev_p != NULL))
+    if((msgList_p != NULL) && (this->client_p != NULL) && (this->dev_p != NULL))
     {
-      while(0 != buffer_p->size())
+      while(0 != msgList_p->size())
       {
-        //Serial.print("--MQTT--");
-        //Serial.print(buffer_p->shift());
-        (void)client_p->publish(buildTopic(MQTT_TRACE_TOPIC), 
-                                      buildPayload(buffer_p->shift()), true);
-      }
+        msg_p = msgList_p->shift();
+        (void)client_p->publish(buildTopic(MQTT_TRACE_TOPIC, msg_p->type_u8), 
+                                    buildPayload(msg_p->msg), true);
+        delete msg_p;
+      }    
     }
   }
   else
@@ -387,25 +391,28 @@ void Trace::PushToChannel()
 *//*-----------------------------------------------------------------------------------*/
 void Trace::prepareMsg(uint8_t type_u8, String msg_str)
 {
-  //String temp_str = String(p_pc);
-  switch(type_u8)
+  // check if a message was already started
+  if(NULL == message_p)
   {
-    case trace_PURE_MSG:
-      buffer_str = buffer_str + String(msg_str);
-      break;
-    case trace_INFO_MSG:
-      buffer_str = buffer_str + String("[INFO]" + msg_str);
-      break;
-    case trace_WARN_MSG:
-      buffer_str = buffer_str + String("[WARN]" + msg_str);
-      break;
-    case trace_ERROR_MSG:
-      buffer_str = buffer_str + String("[ERROR]" + msg_str);
-      break;
-    default:
-      buffer_str = buffer_str + String(msg_str);
-      break;
+    // new start of a trace message
+    buffer_str = "";
+    message_p = new Message();    
+    if(message_p == NULL)
+    { 
+      // error in memory handling, switch to serial trace
+      this->channel_u8 = 0;
+    }
+    else
+    {
+      message_p->type_u8 = type_u8;
+    }   
+  } 
+  else
+  {
+    // continue existing message   
   }
+
+  buffer_str = buffer_str + String(msg_str);
 }
 
 /**---------------------------------------------------------------------------------------
@@ -446,8 +453,9 @@ void Trace::printlnMsg(void)
       Serial.println(buffer_str);
       break;
     case 1:
-      buffer_str = buffer_str + "\n";
-      buffer_p->add(buffer_str);
+      message_p->msg = String(buffer_str + "\n");
+      msgList_p->add(message_p);
+      message_p = NULL;
       break;
     default:
       break;
@@ -464,9 +472,17 @@ void Trace::printlnMsg(void)
  * @param     topic       pointer to topic string
  * @return    combined topic as char pointer, it uses buffer_stca to store the topic
 *//*-----------------------------------------------------------------------------------*/
-char* Trace::buildTopic(const char *topic) 
+char* Trace::buildTopic(const char *topic, uint8_t type_u8) 
 {
-  sprintf(buffer_ca, "%s%s", topic, this->dev_p);
+  if(type_u8 == trace_ERROR_MSG)
+  {
+    sprintf(buffer_ca, "err/%s%s", topic, this->dev_p);
+  }
+  else
+  {
+    sprintf(buffer_ca, "inf/%s%s", topic, this->dev_p);
+  }
+  
   return buffer_ca;
 }
 

@@ -44,9 +44,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define RELAY_PIN                 12 // D6
 #define LED_PIN                   13 // D7
 #define BUTTON_INPUT_PIN          0  // D3
-#define MQTT_SUB_TOGGLE           "/sonoff_basic/toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "/sonoff_basic/switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "/sonoff_basic/status" //state of relay
+#define MQTT_SUB_TOGGLE           "/r/so_basic/toggle" // command message for toggle command
+#define MQTT_SUB_BUTTON           "/r/so_basic/switch" // command message for button commands
+#define MQTT_PUB_LIGHT_STATE      "/s/so_basic/status" //state of relay
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
 
@@ -335,7 +335,7 @@ void SonoffBasic::setRelay(void)
 *//*-----------------------------------------------------------------------------------*/
 char* SonoffBasic::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "%s%s", this->dev_p, topic);
+  sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
   return buffer_ca;
 }
 

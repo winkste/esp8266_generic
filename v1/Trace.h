@@ -96,21 +96,30 @@ class Trace
     private:
         /********************************************************************************/
         /* Private data definitions */
+        class Message
+        {
+            public:
+                String msg;
+                uint8_t type_u8;
+        };
+        
         bool isActive_bol;
         uint8_t channel_u8;
         String buffer_str;
         PubSubClient *client_p; 
         const char *dev_p;
-        LinkedList<String> *buffer_p;
+        LinkedList<Message*> *msgList_p;
+        Message *message_p;
+        uint8_t type_u8;
         char buffer_ca[70];
         char payload_ca[150];
-        
+               
         /********************************************************************************/
         /* Private function definitions: */
         void prepareMsg(uint8_t type_u8, String msg_str);
         void printMsg(void);
         void printlnMsg(void);
-        char* buildTopic(const char *topic);
+        char* buildTopic(const char *topic, uint8_t type_u8) ;
         char* buildPayload(String payload); 
 };
 
