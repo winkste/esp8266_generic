@@ -47,6 +47,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 008       03.01         SWI     changed config ssio
 * 009       06.01         SWI     bug fixing
 * 010       14.01         SWI     reworked mqtt structure and trace module rework
+* 011       14.01         SWI     reworked single relay command structure
+*                                 reworked trace commands in gen
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -57,7 +59,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "010"     // Firmware Version
+#define FW_VERSION                "011"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

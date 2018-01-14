@@ -82,8 +82,9 @@ class SingleRelay : public MqttDevice
         /* Private function definitions: */
         void TurnRelayOff(void);
         void TurnRelayOn(void);
-        void setRelay(void);
-        char* build_topic(const char *topic);
+        void SetRelay(void);
+        char* BuildReceiveTopic(const char *topic);
+        char* BuildSendTopic(const char *topic);
     protected:
         /********************************************************************************/
         /* Protected data definitions */

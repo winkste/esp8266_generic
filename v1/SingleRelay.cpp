@@ -42,9 +42,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define RELAY_PIN                 5
-#define MQTT_SUB_TOGGLE           "r/toggle" // command message for toggle command
-#define MQTT_SUB_BUTTON           "r/switch" // command message for button commands
-#define MQTT_PUB_LIGHT_STATE      "s/status" //state of relay
+#define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
+#define MQTT_SUB_BUTTON           "switch" // command message for button commands
+#define MQTT_PUB_LIGHT_STATE      "status" //state of relay
 #define MQTT_DEFAULT_CHAN         "relay_one"
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
@@ -141,22 +141,22 @@ void SingleRelay::Reconnect(PubSubClient *client_p, const char *dev_p)
         p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay reconnected");
         // ... and resubscribe
         // toggle relay
-        client_p->subscribe(build_topic(MQTT_SUB_TOGGLE));  
+        client_p->subscribe(BuildReceiveTopic(MQTT_SUB_TOGGLE));  
         client_p->loop();
         p_trace->print(trace_INFO_MSG, "<<singRel>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_TOGGLE));
+        p_trace->println(trace_PURE_MSG, BuildReceiveTopic(MQTT_SUB_TOGGLE));
         // change relay state with payload
-        client_p->subscribe(build_topic(MQTT_SUB_BUTTON));  
+        client_p->subscribe(BuildReceiveTopic(MQTT_SUB_BUTTON));  
         client_p->loop();
         p_trace->print(trace_INFO_MSG, "<<singRel>> subscribed 2: ");
-        p_trace->println(trace_PURE_MSG, build_topic(MQTT_SUB_BUTTON));
+        p_trace->println(trace_PURE_MSG, BuildReceiveTopic(MQTT_SUB_BUTTON));
         client_p->loop();
     }
     else
     {
         // failure, not connected
         p_trace->println(trace_ERROR_MSG, 
-                                "<<singRel>>uninizialized MQTT client in single relay detected");
+                         "<<singRel>>uninizialized MQTT client in single relay detected");
         this->isConnected_bol = false;
     }
 }
@@ -175,14 +175,14 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
     if(true == this->isConnected_bol)
     {
         // received toggle relay mqtt topic
-        if (String(build_topic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
+        if (String(BuildReceiveTopic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
         {
             p_trace->print(trace_INFO_MSG, "<<singRel>>mqtt callback: ");
             p_trace->println(trace_PURE_MSG, p_topic);
             this->ToggleRelay();
         }
         // execute command to switch on/off the relay
-        else if (String(build_topic(MQTT_SUB_BUTTON)).equals(p_topic)) 
+        else if (String(BuildReceiveTopic(MQTT_SUB_BUTTON)).equals(p_topic)) 
         {
             p_trace->print(trace_INFO_MSG, "<<singRel>>mqtt callback: ");
             p_trace->print(trace_PURE_MSG, p_topic);
@@ -192,12 +192,12 @@ void SingleRelay::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pay
             if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
             {
                 this->relayState_bol = true;
-                this->setRelay();  
+                this->SetRelay();  
             }
             else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
             {
                 this->relayState_bol = false;
-                this->setRelay();
+                this->SetRelay();
             }
             else
             {
@@ -230,17 +230,17 @@ bool SingleRelay::ProcessPublishRequests(PubSubClient *client)
         if(true == publishState_bol)
         {
             p_trace->print(trace_INFO_MSG, "<<singRel>> publish requested state: ");
-            p_trace->print(trace_PURE_MSG, build_topic(MQTT_PUB_LIGHT_STATE));
+            p_trace->print(trace_PURE_MSG, BuildSendTopic(MQTT_PUB_LIGHT_STATE));
             p_trace->print(trace_PURE_MSG, "  :  ");
             if(true == this->relayState_bol)
             {
-              ret = client->publish(build_topic(MQTT_PUB_LIGHT_STATE), 
+              ret = client->publish(BuildSendTopic(MQTT_PUB_LIGHT_STATE), 
                                         MQTT_PAYLOAD_CMD_ON, true);
               p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_ON);
             }
             else
             {
-                ret = client->publish(build_topic(MQTT_PUB_LIGHT_STATE), 
+                ret = client->publish(BuildSendTopic(MQTT_PUB_LIGHT_STATE), 
                                           MQTT_PAYLOAD_CMD_OFF, true); 
                 p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_OFF); 
             } 
@@ -333,7 +333,7 @@ void SingleRelay::TurnRelayOn(void)
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void SingleRelay::setRelay(void)
+void SingleRelay::SetRelay(void)
 {
   if(true == this->relayState_bol)
   {
@@ -353,9 +353,23 @@ void SingleRelay::setRelay(void)
  * @param     topic       pointer to topic string
  * @return    combined topic as char pointer, it uses buffer_stca to store the topic
 *//*-----------------------------------------------------------------------------------*/
-char* SingleRelay::build_topic(const char *topic) 
+char* SingleRelay::BuildSendTopic(const char *topic) 
 {
-  sprintf(buffer_ca, "std/%s/%s/%s", this->dev_p, this->channel_p, topic);
+  sprintf(buffer_ca, "std/s/%s/%s/%s", this->dev_p, this->channel_p, topic);
+  return buffer_ca;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function helps to build the complete topic including the 
+ *              custom device.
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     topic       pointer to topic string
+ * @return    combined topic as char pointer, it uses buffer_stca to store the topic
+*//*-----------------------------------------------------------------------------------*/
+char* SingleRelay::BuildReceiveTopic(const char *topic) 
+{
+  sprintf(buffer_ca, "std/r/%s/%s/%s", this->dev_p, this->channel_p, topic);
   return buffer_ca;
 }
 
