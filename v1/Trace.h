@@ -43,6 +43,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define trace_WARN_MSG  2u
 #define trace_ERROR_MSG 3u
 
+#define trace_CHANNEL_OFF     0
+#define trace_CHANNEL_SERIAL  1
+#define trace_CHANNEL_MQTT    2
 /****************************************************************************************/
 /* Global function like macro defines (to be avoided): */
 
@@ -66,6 +69,7 @@ class Trace
         Trace();
         Trace(bool isActive_bol);
         void InitializeMqtt(PubSubClient *client_p, const char *dev_p);
+        void SwitchToOff();
         void SwitchToMqtt();
         void SwitchToSerial();
         void PushToChannel();

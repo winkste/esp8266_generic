@@ -49,6 +49,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 010       14.01         SWI     reworked mqtt structure and trace module rework
 * 011       14.01         SWI     reworked single relay command structure
 *                                 reworked trace commands in gen
+* 012       18.01         SWI     implement new generic topics to read/write settings                                
+*                                 without wifimanager involvement
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -59,7 +61,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "011"     // Firmware Version
+#define FW_VERSION                "012"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

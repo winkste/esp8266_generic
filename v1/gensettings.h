@@ -42,11 +42,19 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_FW_IDENT         "/s/gen/fwident" //firmware identification
 #define MQTT_PUB_FW_VERSION       "/s/gen/fwversion" //firmware version
 #define MQTT_PUB_FW_DESC          "/s/gen/desc" //firmware description
-#define MQTT_SUB_COMMAND          "/r/gen/cmd" // command message for generic commands
+#define MQTT_PUB_CAP              "/s/gen/cap"  // send capability
+#define MQTT_PUB_TRACE            "/s/gen/trac" // send trace channel
+#define MQTT_PUB_PARAM            "/s/gen/par"  // send all parameter 
+#define MQTT_SUB_COMMAND          "/r/gen/cmd" // command message for generic read commands
+#define MQTT_SUB_CAP              "/r/gen/cap" // write message for capability
+#define MQTT_SUB_TRACE            "/r/gen/trac" // write message for capability 
 #define MQTT_SUB_BCAST            "bcast/r/gen/cmd" // broadcast command message
 #define MQTT_CLIENT               MQTT_DEFAULT_DEVICE // just a name used to talk to MQTT broker
 #define MQTT_PAYLOAD_CMD_INFO     "INFO"
 #define MQTT_PAYLOAD_CMD_SETUP    "SETUP"
+#define MQTT_PAYLOAD_CMD_CAP      "CAP"
+#define MQTT_PAYLOAD_CMD_TRAC     "TRACE"
+#define MQTT_PAYLOAD_CMD_PAR      "PAR"
 #define PUBLISH_TIME_OFFSET       200     // ms timeout between two publishes
 
 /****************************************************************************************/
