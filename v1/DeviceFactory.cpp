@@ -113,20 +113,7 @@ DeviceFactory::DeviceFactory(Trace * p_trace)
 *//*-----------------------------------------------------------------------------------*/
 void DeviceFactory::SelectTraceChannel(uint8_t chan_u8)
 {
-    if(CAPABILITY_MQTT_TRACE == chan_u8)
-    {
-        trace_p->print(trace_INFO_MSG, "<<devMgr>> trace switch received to MQTT:");
-        trace_p->println(trace_PURE_MSG, chan_u8);
-        // switch to mqtt trace
-        this->trace_p->SwitchToMqtt();
-    }
-    else
-    {
-      trace_p->print(trace_INFO_MSG, "<<devMgr>> trace switch received to serial:");
-      trace_p->println(trace_PURE_MSG, chan_u8);
-      // switch to serial
-      this->trace_p->SwitchToSerial();
-    }
+    trace_p->SelectTraceChannel(chan_u8);
 }
 
 /**---------------------------------------------------------------------------------------

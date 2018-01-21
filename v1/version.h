@@ -51,6 +51,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *                                 reworked trace commands in gen
 * 012       18.01         SWI     implement new generic topics to read/write settings                                
 *                                 without wifimanager involvement
+* 013       21.01         SWI     inserted room parameter for more identification
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -61,7 +62,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "012"     // Firmware Version
+#define FW_VERSION                "013"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

@@ -98,7 +98,7 @@ void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
     this->dev_p = dev_p;
     this->msgList_p = new LinkedList<Message*>;
     this->println(trace_INFO_MSG, "<<trace>>MQTT channel configured");
-    this->print(trace_INFO_MSG, "<<trace>>MQTT ERROR topic:");
+    this->print(trace_INFO_MSG, "<<trace>>MQTT topics:");
     this->print(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC, trace_ERROR_MSG));
     this->print(trace_PURE_MSG," or ");
     this->print(trace_PURE_MSG, buildTopic(MQTT_TRACE_TOPIC, trace_INFO_MSG));
@@ -118,6 +118,7 @@ void Trace::InitializeMqtt(PubSubClient *client_p, const char *dev_p)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::SwitchToOff()
 {
+  this->println(trace_INFO_MSG, "<<trace>> trace switch received off");
   this->channel_u8 = trace_CHANNEL_OFF;
 }
 
@@ -131,6 +132,7 @@ void Trace::SwitchToMqtt()
 {
   if((NULL != client_p) && (NULL != dev_p))
   {
+    this->println(trace_INFO_MSG, "<<trace>> trace switch received to MQTT:");
     this->channel_u8 = trace_CHANNEL_MQTT;  
   }
 }
@@ -143,7 +145,34 @@ void Trace::SwitchToMqtt()
 *//*-----------------------------------------------------------------------------------*/
 void Trace::SwitchToSerial()
 {
+  this->println(trace_INFO_MSG, "<<trace>> trace switch received to serial:");
   this->channel_u8 = trace_CHANNEL_SERIAL;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Switch trace channel
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     chan_u8 channel for trace messages
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::SelectTraceChannel(uint8_t chan_u8)
+{
+  switch(chan_u8)
+  {
+    case trace_CHANNEL_OFF:
+      this->SwitchToOff();
+      break;
+    case trace_CHANNEL_SERIAL:
+      this->SwitchToSerial();
+      break;
+    case trace_CHANNEL_MQTT:
+      this->SwitchToMqtt();
+      break;
+    default:
+      this->SwitchToSerial();
+      break;
+  } 
 }
 
 /**---------------------------------------------------------------------------------------

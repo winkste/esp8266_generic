@@ -42,6 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_FW_IDENT         "/s/gen/fwident" //firmware identification
 #define MQTT_PUB_FW_VERSION       "/s/gen/fwversion" //firmware version
 #define MQTT_PUB_FW_DESC          "/s/gen/desc" //firmware description
+#define MQTT_PUB_DEV_ROOM         "/s/gen/room" //firmware description
 #define MQTT_PUB_CAP              "/s/gen/cap"  // send capability
 #define MQTT_PUB_TRACE            "/s/gen/trac" // send trace channel
 #define MQTT_PUB_PARAM            "/s/gen/par"  // send all parameter 
@@ -67,6 +68,7 @@ typedef struct mqttData_tag{ //xx byte
   char login[16];
   char pw[16];
   char dev_short[6];
+  char room[16];
   char cap[4]; // capability
   char chan[4]; // capability
   char server_ip[16];

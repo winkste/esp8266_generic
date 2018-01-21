@@ -72,6 +72,7 @@ class Trace
         void SwitchToOff();
         void SwitchToMqtt();
         void SwitchToSerial();
+        void SelectTraceChannel(uint8_t chan_u8);
         void PushToChannel();
         void Initialize();
         //boolean ConfigMqttTrace(PubSubClient *client_p, const char *dev_p);
