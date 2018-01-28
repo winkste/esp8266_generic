@@ -46,7 +46,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define CAPABILITY_MQTT_TRACE           0x01u
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
 #define CAPABILITY_0x10                 0x10u

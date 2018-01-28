@@ -53,6 +53,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *                                 without wifimanager involvement
 * 013       21.01         SWI     inserted room parameter for more identification
 * 014       21.01         SWI     set dht update rate to 30secs
+* 015       28.01         SWI     rework trace topic structure
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -63,7 +64,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "014"     // Firmware Version
+#define FW_VERSION                "015"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/
