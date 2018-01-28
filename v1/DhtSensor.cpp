@@ -61,7 +61,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_TEMPERATURE      "/s/temp_hum/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/s/temp_hum/hum" // humidity data
 #define MQTT_PUB_BATTERY          "/s/temp_hum/bat" // battery capacity data
-#define MQTT_REPORT_INTERVAL      5000l //(ms) - 5 seconds between reports
+#define MQTT_REPORT_INTERVAL      30000l //(ms) - 30 seconds between reports
 /****************************************************************************************/
 /* Local function like makros */
 
