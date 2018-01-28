@@ -42,7 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
-#define MQTT_TRACE_TOPIC        "/trace/"     //trace message
+#define MQTT_TRACE_TOPIC        "s/trace/"     //trace message
 /*****************************************************************************************
  * Local function like makros 
 *****************************************************************************************/
@@ -426,11 +426,11 @@ char* Trace::buildTopic(const char *topic, uint8_t type_u8)
 {
   if(type_u8 == trace_ERROR_MSG)
   {
-    sprintf(buffer_ca, "err/s/%s%s", this->dev_p, topic);
+    sprintf(buffer_ca, "err/%s/%s", this->dev_p, topic);
   }
   else
   {
-    sprintf(buffer_ca, "inf/s/%s%s", this->dev_p, topic);
+    sprintf(buffer_ca, "inf/%s/%s", this->dev_p, topic);
   }
   
   return buffer_ca;
