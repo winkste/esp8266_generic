@@ -1,16 +1,12 @@
 /*****************************************************************************************
-* FILENAME :        DeviceFactory.cpp
+* FILENAME :        GpioDevice.cpp
 *
 * DESCRIPTION :
-*       Device generator
-*
-* PUBLIC FUNCTIONS :
-*
+*       Abstract Gpio class
 *
 * NOTES :
 *
-*
-* Copyright (c) [2017] [Stephan Wink]
+* Copyright (c) [2018] [Stephan Wink]
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -30,34 +26,17 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *
-* AUTHOR :    Stephan Wink        START DATE :    01.10.2017
+* AUTHOR :    Stephan Wink        START DATE :    06. Feb. 2018
 *
 *****************************************************************************************/
 
 /****************************************************************************************/
 /* Include Interfaces */
-#include "SonoffSwitch.h"
-#include "DhtSensor.h"
-#include "MqttDevice.h"
 #include "GpioDevice.h"
-#include "McpGpio.h"
-#include "EspGpio.h"
-#include "SingleRelay.h"
 #include "Trace.h"
-#include "PubSubClient.h"
-
-#include "DeviceFactory.h"
 
 /****************************************************************************************/
 /* Local constant defines */
-#define CAPABILITY_0x80         0x80u
-#define CAPABILITY_0x40         0x40u
-#define CAPABILITY_0x20         0x20u
-#define CAPABILITY_0x10         0x10u
-#define CAPABILITY_0x08         0x08u
-#define CAPABILITY_0x04         0x04u
-#define CAPABILITY_0x02         0x02u
-#define CAPABILITY_0x01         0x01u
 
 /****************************************************************************************/
 /* Local function like makros */
@@ -66,64 +45,64 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local type definitions (enum, struct, union) */
 
 /****************************************************************************************/
+/* Static Data instantiation */
+
+/****************************************************************************************/
 /* Public functions (unlimited visibility) */
 
 /**---------------------------------------------------------------------------------------
- * @brief     Constructor for SonoffSwitch
+ * @brief     Constructur for GpioDevice
  * @author    winkste
  * @date      20 Okt. 2017
- * @param     p_trace     trace object for info and error messages
- * @return    n/a
+ * @param     p_trace   trace object for debug output
+ * @return    a GpioDevice object
 *//*-----------------------------------------------------------------------------------*/
-DeviceFactory::DeviceFactory(Trace * p_trace)
+GpioDevice::GpioDevice(Trace *p_trace)
 {
-    this->trace_p = p_trace;
+    this->p_trace = p_trace;
+    this->pin_u8 = 0;
+    this->dir_u8 = gpioDevice_INPUT;
 }
 
-MqttDevice * DeviceFactory::GenerateDevice(uint8_t type_u8)
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructur for GpioDevice
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace   trace object for debug output
+ * @param     pin_u8    corresponding pin
+ * @return    a GpioDevice object
+*//*-----------------------------------------------------------------------------------*/
+GpioDevice::GpioDevice(Trace *p_trace, uint8_t pin_u8)
 {
-    MqttDevice * device_p = NULL;
-    DhtSensor *sensor_p = NULL;
-    GpioDevice *gpio_p = NULL;
-
-    switch(type_u8)
-    {
-        case 0:
-            device_p = new SonoffSwitch(trace_p);
-            break;
-        case 1:
-            sensor_p = new DhtSensor(trace_p);
-            device_p = new DhtSensor(trace_p);
-            DhtSensor::TestIntegerFunc(100);
-            DhtSensor::SetSelf(sensor_p);
-            DhtSensor::StaticTestFunc();
-            break;
-        case 2:
-            gpio_p = new McpGpio(trace_p, 5, 1);
-            device_p = new SingleRelay(trace_p, gpio_p, " ", 0);
-            break;
-        case 3:
-            gpio_p = new EspGpio(trace_p, 7, 1);
-            device_p = new SingleRelay(trace_p, gpio_p, " ", 0);
-            break;
-        default:
-            break;
-    }
-
-    return(device_p);
+    this->p_trace = p_trace;
+    this->pin_u8 = pin_u8;
+    this->dir_u8 = gpioDevice_INPUT;
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructur for GpioDevice
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace   trace object for debug output
+ * @param     pin_u8    corresponding pin
+ * @param     dir_u8    corresponding pin direction
+ * @return    a GpioDevice object
+*//*-----------------------------------------------------------------------------------*/
+GpioDevice::GpioDevice(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8)
+{
+    this->p_trace = p_trace;
+    this->pin_u8 = pin_u8;
+    this->dir_u8 = dir_u8;
+}
 /**---------------------------------------------------------------------------------------
  * @brief     Default destructor
  * @author    winkste
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-DeviceFactory::~DeviceFactory()
+GpioDevice::~GpioDevice()
 {
-    // TODO Auto-generated destructor stub
 }
 
 /****************************************************************************************/
 /* Private functions: */
-

@@ -6,8 +6,12 @@
 CPP_SRCS += \
 ../src/DeviceFactory.cpp \
 ../src/DhtSensor.cpp \
+../src/EspGpio.cpp \
+../src/GpioDevice.cpp \
+../src/McpGpio.cpp \
 ../src/MqttDevice.cpp \
 ../src/PubSubClient.cpp \
+../src/SingleRelay.cpp \
 ../src/SonoffSwitch.cpp \
 ../src/Trace.cpp \
 ../src/TraceErr.cpp \
@@ -17,8 +21,12 @@ CPP_SRCS += \
 OBJS += \
 ./src/DeviceFactory.o \
 ./src/DhtSensor.o \
+./src/EspGpio.o \
+./src/GpioDevice.o \
+./src/McpGpio.o \
 ./src/MqttDevice.o \
 ./src/PubSubClient.o \
+./src/SingleRelay.o \
 ./src/SonoffSwitch.o \
 ./src/Trace.o \
 ./src/TraceErr.o \
@@ -28,8 +36,12 @@ OBJS += \
 CPP_DEPS += \
 ./src/DeviceFactory.d \
 ./src/DhtSensor.d \
+./src/EspGpio.d \
+./src/GpioDevice.d \
+./src/McpGpio.d \
 ./src/MqttDevice.d \
 ./src/PubSubClient.d \
+./src/SingleRelay.d \
 ./src/SonoffSwitch.d \
 ./src/Trace.d \
 ./src/TraceErr.d \

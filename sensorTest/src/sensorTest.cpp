@@ -51,5 +51,21 @@ int main()
     p_genSensor->CallbackMqtt(&client, "This is a switch topic", "This is the payload.");
     p_genSensor->ProcessPublishRequests(&client);
 
+    p_genSensor = factory.GenerateDevice(2);
+    p_genSensor->Initialize();
+    p_genSensor->Reconnect();
+    p_genSensor->CallbackMqtt(&client, "This is a switch topic MCP", "This is the payload.");
+    p_genSensor->ProcessPublishRequests(&client);
+    p_genSensor->ProcessPublishRequests(&client);
+    p_genSensor->ProcessPublishRequests(&client);
+
+    p_genSensor = factory.GenerateDevice(3);
+    p_genSensor->Initialize();
+    p_genSensor->Reconnect();
+    p_genSensor->CallbackMqtt(&client, "This is a switch topic ESP", "This is the payload.");
+    p_genSensor->ProcessPublishRequests(&client);
+    p_genSensor->ProcessPublishRequests(&client);
+    p_genSensor->ProcessPublishRequests(&client);
+
 	return 0;
 }
