@@ -6,3 +6,13 @@
 *.d
 
 *.o
+
+*.o
+
+sensorTest/Debug/src/DeviceFactory.d
+
+sensorTest/Debug/src/DeviceFactory.o
+
+sensorTest/Debug/src/DeviceFactory.o
+
+sensorTest/Debug/src/sensorTest.o
