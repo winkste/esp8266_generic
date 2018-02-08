@@ -41,7 +41,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define RELAY_PIN                 5
 #define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
 #define MQTT_SUB_BUTTON           "switch" // command message for button commands
 #define MQTT_PUB_LIGHT_STATE      "status" //state of relay
@@ -63,39 +62,21 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     p_trace     trace object for info and error messages
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-SingleRelay::SingleRelay(Trace *p_trace) : MqttDevice(p_trace)
-{
-    this->prevTime_u32      = 0;
-    this->publications_u16  = 0;
-    this->relayState_bol    = false;
-    this->publishState_bol  = true;
-    this->pin_u8            = RELAY_PIN;
-    this->channel_p         = MQTT_DEFAULT_CHAN;
-    this->invert_bol        = false;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Constructor for the single relay shield
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     p_trace     trace object for info and error messages
- * @param     pin_u8      pin selection
+ * @param     gpio_p      gpio object configured as output
  * @param     relayChan_p relay topic message with channel information
  * @param     invert_bol  false = pin HIGH = relay ON = relay led on
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-SingleRelay::SingleRelay(Trace *p_trace, uint8_t pin_u8, char* relayChan_p, 
-                                              boolean invert_bol) : MqttDevice(p_trace)
+SingleRelay::SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, 
+                                                    char* relayChan_p, bool invert_bol) : MqttDevice(p_trace)
 {
     this->prevTime_u32      = 0;
     this->publications_u16  = 0;
     this->relayState_bol    = false;
     this->publishState_bol  = true;
-    this->pin_u8            = pin_u8;
     this->channel_p         = relayChan_p; 
     this->invert_bol        = invert_bol; 
+    this->gpio_p            = gpio_p;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -119,7 +100,7 @@ void SingleRelay::Initialize()
 {
     this->isInitialized_bol = true;
     p_trace->println(trace_INFO_MSG, "<<singRel>>Single relay initialized");
-    pinMode(this->pin_u8, OUTPUT);
+    //pinMode(this->pin_u8, OUTPUT);
     //this->setRelay();
     this->TurnRelayOff();
 }
@@ -291,11 +272,11 @@ void SingleRelay::TurnRelayOff(void)
       this->relayState_bol = false;
       if(true == this->invert_bol)
       {
-        digitalWrite(this->pin_u8, HIGH);
+        gpio_p->DigitalWrite(HIGH);
       }
       else
       {
-        digitalWrite(this->pin_u8, LOW);
+        gpio_p->DigitalWrite(LOW);
       }     
       p_trace->println(trace_INFO_MSG, "<<singRel>>relay turned off");
       this->publishState_bol = true;
@@ -315,11 +296,11 @@ void SingleRelay::TurnRelayOn(void)
       this->relayState_bol = true;
       if(true == this->invert_bol)
       {
-        digitalWrite(this->pin_u8, LOW);
+        gpio_p->DigitalWrite(LOW);
       }
       else
       {
-        digitalWrite(this->pin_u8, HIGH);
+        gpio_p->DigitalWrite(HIGH);
       }
       p_trace->println(trace_INFO_MSG, "<<singRel>>relay turned on");
       this->publishState_bol = true;

@@ -36,7 +36,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "McpGpio.h"
 #include "Trace.h"
 
-//#include "Adafruit_MCP23017.h"
+#include "Adafruit_MCP23017.h"
 
 /****************************************************************************************/
 /* Local constant defines */
@@ -47,9 +47,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local type definitions (enum, struct, union) */
 
-int McpGpio::mcp = 0;
 bool McpGpio::mcpInitialized_bol = false;
 uint8_t McpGpio::mcpAddr_u8 = 0x20;
+Adafruit_MCP23017 McpGpio::mcp;
 
 /****************************************************************************************/
 /* Public functions (unlimited visibility) */
@@ -83,7 +83,6 @@ McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8) : GpioDevice(p_trace, pin_u8)
     this->stat_u8 = 0;
     this->Initialize();
     this->PinMode();
-
 }
 
 /**---------------------------------------------------------------------------------------
@@ -140,7 +139,7 @@ void McpGpio::DigitalWrite(uint8_t state_u8)
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> digitalWrite of MCPDevice called");
     this->stat_u8 = state_u8;
-    //this->mcp.digitalWrite(this->pin_u8, this->stat_u8);
+    this->mcp.digitalWrite(this->pin_u8, this->stat_u8);
     this->PrintPinStat();
 }
 
@@ -155,7 +154,7 @@ uint8_t McpGpio::DigitalRead()
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> digitalRead of MCPDevice called");
     this->PrintPinStat();
-    //this->stat_u8 = this->mcp.digitalRead(this->pin_u8);
+    this->stat_u8 = this->mcp.digitalRead(this->pin_u8);
     return(this->stat_u8);
 }
 
@@ -170,8 +169,6 @@ uint8_t McpGpio::DigitalRead()
 void McpGpio::PrintPinStat()
 {
     this->p_trace->print(trace_INFO_MSG, "<<mcpgpio>> Pin Status: ");
-    //this->p_trace->print(trace_PURE_MSG, this->mcp);
-    //this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->print(trace_PURE_MSG, this->pin_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->print(trace_PURE_MSG, this->dir_u8);
@@ -189,8 +186,7 @@ void McpGpio::Initialize()
 {
     if(false == this->mcpInitialized_bol)
     {
-        this->mcp += 1;
-        //mcp.begin();      // use default address 0
+        this->mcp.begin();      // use default address 0
         this->mcpInitialized_bol = true;
         this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> MCP initialized");
     }
@@ -208,7 +204,7 @@ void McpGpio::Initialize()
 *//*-----------------------------------------------------------------------------------*/
 void McpGpio::PinMode()
 {
-    //this->mcp.pinMode(this->pin_u8, this->dir_u8);
+    this->mcp.pinMode(this->pin_u8, this->dir_u8);
     this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> pin mode changed");
 }
 

@@ -1,12 +1,12 @@
 /*****************************************************************************************
-* FILENAME :        SingleRelay.h
+* FILENAME :        GpioDevice.h
 *
 * DESCRIPTION :
-*       Class header for Single Relay
+*       Abstract class for GPIOS
 *
 * NOTES :
 *
-* Copyright (c) [2017] [Stephan Wink]
+* Copyright (c) [2018] [Stephan Wink]
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,19 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef SINGLERELAY_H_
-#define SINGLERELAY_H_
+#ifndef GPIODEVICE_H_
+#define GPIODEVICE_H_
 
 /****************************************************************************************/
 /* Imported header files: */
-
-#include "MqttDevice.h"
 #include "Trace.h"
-#include "PubSubClient.h"
-#include "GpioDevice.h"
-
-#include <ESP8266WiFi.h>         
-#include <PubSubClient.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
+#define gpioDevice_LOW     (0u)
+#define gpioDevice_HIGH    (1u)
+#define gpioDevice_INPUT   (0u)
+#define gpioDevice_OUTPUT  (1u)
 
 /****************************************************************************************/
 /* Global function like macro defines (to be avoided): */
@@ -51,7 +48,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class SingleRelay : public MqttDevice
+class GpioDevice
 {
     public:
         /********************************************************************************/
@@ -59,39 +56,25 @@ class SingleRelay : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, char* relayChan_p, bool invert_bol);
-        // virtual functions, implementation in derived classes
-        bool ProcessPublishRequests(PubSubClient *client);
-        void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
-        void Initialize();
-        void Reconnect(PubSubClient *client_p, const char *dev_p);
-        void ToggleRelay(void);
-        virtual
-        ~SingleRelay();
-    private:
-        /********************************************************************************/
-        /* Private data definitions */ 
-        boolean relayState_bol        = false;
-        boolean publishState_bol      = true;
-        char buffer_ca[100];
-        char *channel_p;
-        boolean invert_bol            = false;
-        GpioDevice *gpio_p;
+        GpioDevice(Trace *p_trace);
+        GpioDevice(Trace *p_trace, uint8_t pin_u8);
+        GpioDevice(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
+        virtual ~GpioDevice();
+        //virtual void Initialize();
+        virtual void PinMode(uint8_t dir_u8) = 0;
+        virtual void DigitalWrite(uint8_t state_u8) = 0;
+        virtual uint8_t DigitalRead(void) = 0;
         
-        /********************************************************************************/
-        /* Private function definitions: */
-        void TurnRelayOff(void);
-        void TurnRelayOn(void);
-        void SetRelay(void);
-        char* BuildReceiveTopic(const char *topic);
-        char* BuildSendTopic(const char *topic);
     protected:
         /********************************************************************************/
         /* Protected data definitions */
+        Trace       *p_trace;
+        uint8_t     pin_u8;
+        uint8_t     dir_u8;
 
         /********************************************************************************/
         /* Protected function definitions: */
-
+        
 };
 
-#endif /* SINGLERELAY_H_ */
+#endif /* GPIODEVICE_H_ */

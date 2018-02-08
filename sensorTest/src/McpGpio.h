@@ -66,6 +66,7 @@ class McpGpio : public GpioDevice
         /********************************************************************************/
         /* Private data definitions */ 
         static int mcp;
+        static uint8_t mcpAddr_u8;
         static bool mcpInitialized_bol;
         uint8_t stat_u8;
 

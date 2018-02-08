@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        SingleRelay.h
+* FILENAME :        McpGpio.h
 *
 * DESCRIPTION :
-*       Class header for Single Relay
+*       Class header for MCP Gpio class
 *
 * NOTES :
 *
@@ -26,19 +26,16 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef SINGLERELAY_H_
-#define SINGLERELAY_H_
+#ifndef MCPGPIO_H_
+#define MCPGPIO_H_
 
 /****************************************************************************************/
 /* Imported header files: */
 
-#include "MqttDevice.h"
-#include "Trace.h"
-#include "PubSubClient.h"
 #include "GpioDevice.h"
+#include "Trace.h"
 
-#include <ESP8266WiFi.h>         
-#include <PubSubClient.h>
+#include "Adafruit_MCP23017.h"
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -51,7 +48,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class SingleRelay : public MqttDevice
+class McpGpio : public GpioDevice
 {
     public:
         /********************************************************************************/
@@ -59,33 +56,28 @@ class SingleRelay : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, char* relayChan_p, bool invert_bol);
-        // virtual functions, implementation in derived classes
-        bool ProcessPublishRequests(PubSubClient *client);
-        void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
-        void Initialize();
-        void Reconnect(PubSubClient *client_p, const char *dev_p);
-        void ToggleRelay(void);
-        virtual
-        ~SingleRelay();
+        McpGpio(Trace *p_trace);
+        McpGpio(Trace *p_trace, uint8_t pin_u8);
+        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
+
+        void PinMode(uint8_t dir_u8);
+        void DigitalWrite(uint8_t state_u8);
+        uint8_t DigitalRead(void);
+        virtual ~McpGpio();
     private:
         /********************************************************************************/
         /* Private data definitions */ 
-        boolean relayState_bol        = false;
-        boolean publishState_bol      = true;
-        char buffer_ca[100];
-        char *channel_p;
-        boolean invert_bol            = false;
-        GpioDevice *gpio_p;
-        
+        static Adafruit_MCP23017 mcp;
+        static uint8_t mcpAddr_u8;
+        static bool mcpInitialized_bol;
+        uint8_t stat_u8;
+
         /********************************************************************************/
         /* Private function definitions: */
-        void TurnRelayOff(void);
-        void TurnRelayOn(void);
-        void SetRelay(void);
-        char* BuildReceiveTopic(const char *topic);
-        char* BuildSendTopic(const char *topic);
-    protected:
+        void PrintPinStat();
+        void PinMode();
+        void Initialize();
+
         /********************************************************************************/
         /* Protected data definitions */
 
@@ -94,4 +86,4 @@ class SingleRelay : public MqttDevice
 
 };
 
-#endif /* SINGLERELAY_H_ */
+#endif /* MCPGPIO_H_ */
