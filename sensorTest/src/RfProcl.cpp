@@ -66,10 +66,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Include Interfaces */
-#include <iostream>
-#include <stddef.h>
 #include <stdint.h>
-using namespace std;
 
 #include "RfProcl.h"
 
@@ -109,9 +106,9 @@ bool RfProcl::VerifyMessage(msg_t *msg_p)
 
     msgCorrect_bol &= MSG_PREAMBLE & msg_p->header_u8;
     msgCorrect_bol &= MSG_POSTAMBLE & msg_p->header_u8;
-    tmpChkSum_u8 += ((msgConverter_t *)(msg_p))->rawBytes_u8a[0];
-    tmpChkSum_u8 += ((msgConverter_t *)(msg_p))->rawBytes_u8a[1];
-    tmpChkSum_u8 += ((msgConverter_t *)(msg_p))->rawBytes_u8a[2];
+    tmpChkSum_u8 += msg_p->header_u8;
+    tmpChkSum_u8 += (uint8_t)(msg_p->data_u16 >> 8);
+    tmpChkSum_u8 += (uint8_t)(msg_p->data_u16 & 0x00FF);
     msgCorrect_bol &= tmpChkSum_u8 == msg_p->chkSum_u8;
 
     return(true);     
@@ -190,7 +187,9 @@ uint16_t RfProcl::GetMsgData(msg_t *msg_p)
 void RfProcl::InitializeMessage(msg_t *msg_p)
 {
     // reset the complete message to 0
-    ((msgConverter_t *)(msg_p))->rawData_u32 = 0L;
+    msg_p->header_u8 = 0;
+    msg_p->data_u16 = 0u;
+    msg_p->chkSum_u8 = 0;
 
     // set pre-and post ambel
     msg_p->header_u8 |= MSG_PREAMBLE;
@@ -292,18 +291,11 @@ bool RfProcl::CalculateChkSum(msg_t *msg_p)
 {
     bool fctAck_bol = false;
 
-    cout << "Debug: " << ((msgConverter_t *)(msg_p))->rawData_u32 << endl;
-    msg_p->chkSum_u8 = 0xbb;
-    cout << "Debug: " << ((msgConverter_t *)(msg_p))->rawData_u32 << endl;
-    cout << "Debug: " << (int)((msgConverter_t *)(msg_p))->rawBytes_u8a[0] << endl;
-    cout << "Debug: " << (int)((msgConverter_t *)(msg_p))->rawBytes_u8a[1] << endl;
-    cout << "Debug: " << (int)((msgConverter_t *)(msg_p))->rawBytes_u8a[2] << endl;
-    cout << "Debug: " << (int)((msgConverter_t *)(msg_p))->rawBytes_u8a[3] << endl;
     if(NULL != msg_p)
     {
-        msg_p->chkSum_u8 =  ((msgConverter_t *)(msg_p))->rawBytes_u8a[0];
-        msg_p->chkSum_u8 += ((msgConverter_t *)(msg_p))->rawBytes_u8a[1];
-        msg_p->chkSum_u8 += ((msgConverter_t *)(msg_p))->rawBytes_u8a[2];
+        msg_p->chkSum_u8 =  msg_p->header_u8;
+        msg_p->chkSum_u8 += (uint8_t)(msg_p->data_u16 >> 8);
+        msg_p->chkSum_u8 += (uint8_t)(msg_p->data_u16 & 0x00FF);
         fctAck_bol = true;       
     }
 
@@ -319,7 +311,13 @@ bool RfProcl::CalculateChkSum(msg_t *msg_p)
 *//*-----------------------------------------------------------------------------------*/
 uint32_t RfProcl::GetRawData(msg_t *msg_p)
 {
-    return((msgConverter_t *)(msg_p))->rawData_u32;
+    uint32_t rawData_u32;
+
+    rawData_u32 =   msg_p->header_u8 << 24;
+    rawData_u32 +=  msg_p->data_u16 << 8;
+    rawData_u32 += msg_p->chkSum_u8;
+
+    return(rawData_u32);
 }
 
 /****************************************************************************************/

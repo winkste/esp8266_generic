@@ -64,6 +64,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Imported header files: */
+#include <stdint.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -76,17 +77,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 typedef struct msg_tag
 {
-    uint8_t header_u8;
-    uint16_t data_u16;
-    uint8_t chkSum_u8;
+    uint8_t     header_u8;
+    uint16_t    data_u16;
+    uint8_t     chkSum_u8;
 }msg_t;
-
-typedef union msgConverter_tag
-{
-    uint32_t rawData_u32;
-    msg_t msg_s;
-    uint8_t rawBytes_u8a[4];
-}msgConverter_t;
 
 /****************************************************************************************/
 /* Class definition: */

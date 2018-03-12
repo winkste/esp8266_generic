@@ -6,6 +6,8 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+#include "stdint.h"
+
 #include <iostream>
 #include "MqttDevice.h"
 #include "Trace.h"
@@ -77,6 +79,13 @@ int main()
     RfProcl::SetMsgData(&myMessage, 0xa5a5);
     RfProcl::CalculateChkSum(&myMessage);
 
+    /*cout << "Msg verified: " << RfProcl::VerifyMessage(&myMessage) << endl;
+    cout << "FromNode Id: " << (uint32_t)RfProcl::GetFromNodeId(&myMessage) << endl;
+    cout << "ToNode Id: " << (uint32_t)RfProcl::GetToNodeId(&myMessage) << endl;
+    cout << "Msg Id: " << (uint32_t)RfProcl::GetMsgTypeId(&myMessage) << endl;
+    cout << "Msg Data: " << (uint32_t)RfProcl::GetMsgData(&myMessage) << endl;
+    cout << "Raw Msg: " << (uint32_t)RfProcl::GetRawData(&myMessage) << endl;*/
+
     myLogger_p->print(trace_INFO_MSG, "This is a first RfProtocol Test: FromNode: ");
     myLogger_p->print(trace_PURE_MSG, RfProcl::GetFromNodeId(&myMessage));
     myLogger_p->print(trace_PURE_MSG, "; ToNode: ");
@@ -86,17 +95,6 @@ int main()
     myLogger_p->print(trace_PURE_MSG, "; MsgData: ");
     myLogger_p->print(trace_PURE_MSG, RfProcl::GetMsgData(&myMessage));
     myLogger_p->print(trace_PURE_MSG, "; RawData: ");
-    msgConverter_t *converter;
-    converter = (msgConverter_t *)&myMessage;
-    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[0]);
-    myLogger_p->print(trace_PURE_MSG, " : ");
-    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[1]);
-    myLogger_p->print(trace_PURE_MSG, " : ");
-    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[2]);
-    myLogger_p->print(trace_PURE_MSG, " : ");
-    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[3]);
-    myLogger_p->println(trace_PURE_MSG, "");
-
 
 	return 0;
 }
