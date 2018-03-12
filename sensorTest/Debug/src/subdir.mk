@@ -11,6 +11,7 @@ CPP_SRCS += \
 ../src/McpGpio.cpp \
 ../src/MqttDevice.cpp \
 ../src/PubSubClient.cpp \
+../src/RfProcl.cpp \
 ../src/SingleRelay.cpp \
 ../src/SonoffSwitch.cpp \
 ../src/Trace.cpp \
@@ -26,6 +27,7 @@ OBJS += \
 ./src/McpGpio.o \
 ./src/MqttDevice.o \
 ./src/PubSubClient.o \
+./src/RfProcl.o \
 ./src/SingleRelay.o \
 ./src/SonoffSwitch.o \
 ./src/Trace.o \
@@ -41,6 +43,7 @@ CPP_DEPS += \
 ./src/McpGpio.d \
 ./src/MqttDevice.d \
 ./src/PubSubClient.d \
+./src/RfProcl.d \
 ./src/SingleRelay.d \
 ./src/SonoffSwitch.d \
 ./src/Trace.d \

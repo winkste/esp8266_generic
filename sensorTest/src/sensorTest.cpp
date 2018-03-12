@@ -12,6 +12,7 @@
 #include "TraceSerial.h"
 #include "TraceErr.h"
 #include "DeviceFactory.h"
+#include "RfProcl.h"
 
 using namespace std;
 
@@ -66,6 +67,36 @@ int main()
     p_genSensor->ProcessPublishRequests(&client);
     p_genSensor->ProcessPublishRequests(&client);
     p_genSensor->ProcessPublishRequests(&client);
+
+    msg_t myMessage;
+
+    RfProcl::InitializeMessage(&myMessage);
+    RfProcl::SetFromNodeId(&myMessage, 0x03);
+    RfProcl::SetToNodeId(&myMessage, 0x02);
+    RfProcl::SetMsgTypeId(&myMessage, 0x01);
+    RfProcl::SetMsgData(&myMessage, 0xa5a5);
+    RfProcl::CalculateChkSum(&myMessage);
+
+    myLogger_p->print(trace_INFO_MSG, "This is a first RfProtocol Test: FromNode: ");
+    myLogger_p->print(trace_PURE_MSG, RfProcl::GetFromNodeId(&myMessage));
+    myLogger_p->print(trace_PURE_MSG, "; ToNode: ");
+    myLogger_p->print(trace_PURE_MSG, RfProcl::GetToNodeId(&myMessage));
+    myLogger_p->print(trace_PURE_MSG, "; MsgType: ");
+    myLogger_p->print(trace_PURE_MSG, RfProcl::GetMsgTypeId(&myMessage));
+    myLogger_p->print(trace_PURE_MSG, "; MsgData: ");
+    myLogger_p->print(trace_PURE_MSG, RfProcl::GetMsgData(&myMessage));
+    myLogger_p->print(trace_PURE_MSG, "; RawData: ");
+    msgConverter_t *converter;
+    converter = (msgConverter_t *)&myMessage;
+    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[0]);
+    myLogger_p->print(trace_PURE_MSG, " : ");
+    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[1]);
+    myLogger_p->print(trace_PURE_MSG, " : ");
+    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[2]);
+    myLogger_p->print(trace_PURE_MSG, " : ");
+    myLogger_p->print(trace_PURE_MSG, converter->rawBytes_u8a[3]);
+    myLogger_p->println(trace_PURE_MSG, "");
+
 
 	return 0;
 }
