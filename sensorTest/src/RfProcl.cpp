@@ -320,6 +320,20 @@ uint32_t RfProcl::GetRawData(msg_t *msg_p)
     return(rawData_u32);
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     set raw message data
+ * @author    winkste
+ * @date      11. Mar. 2018
+ * @param     msg_p             pointer to message buffer
+ * @param     rawData_u32       raw message data
+ * @return    -
+*//*-----------------------------------------------------------------------------------*/
+void RfProcl::SetRawData(msg_t *msg_p, uint32_t rawData_u32)
+{
+
+    *((uint32_t *)msg_p) = rawData_u32;
+}
+
 /****************************************************************************************/
 /* Private functions: */
 

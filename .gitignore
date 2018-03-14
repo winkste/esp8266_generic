@@ -16,3 +16,7 @@ sensorTest/Debug/src/DeviceFactory.o
 sensorTest/Debug/src/DeviceFactory.o
 
 sensorTest/Debug/src/sensorTest.o
+*.o
+*.o
+sensorTest/Debug/src/DhtSensor.o
+sensorTest/Debug/src/DhtSensor.d

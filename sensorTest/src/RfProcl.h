@@ -104,6 +104,7 @@ class RfProcl
         static bool SetMsgData(msg_t *msg_p, uint16_t data_u16);
         static bool CalculateChkSum(msg_t *msg_p);
         static uint32_t GetRawData(msg_t *msg_p);
+        static void SetRawData(msg_t *msg_p, uint32_t rawData_u32);
 
         //virtual ~RfProcl();
     private:
