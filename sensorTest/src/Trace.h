@@ -35,6 +35,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Imported header files: */
+#include "stdint.h"
 #include <string>
 using namespace std;
 

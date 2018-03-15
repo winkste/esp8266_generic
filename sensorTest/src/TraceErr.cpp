@@ -41,9 +41,18 @@ using namespace std;
 #include "Trace.h"
 #include "TraceErr.h"
 
+
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
+#include <sstream>
+
+template <typename T>
+std::string to_string(const T& value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
 
 /*****************************************************************************************
  * Local function like makros 
@@ -188,7 +197,7 @@ void TraceErr::println(uint8_t type_u8, char *msg_pc)
 *//*-----------------------------------------------------------------------------------*/
 void TraceErr::print(uint8_t type_u8, uint8_t value_u8)
 {
-  Trace::prepareMsg(type_u8, std::to_string(value_u8));
+  Trace::prepareMsg(type_u8, to_string(value_u8));
   cerr << buffer_str;
 }
 
@@ -203,7 +212,7 @@ void TraceErr::print(uint8_t type_u8, uint8_t value_u8)
 *//*-----------------------------------------------------------------------------------*/
 void TraceErr::println(uint8_t type_u8, uint8_t value_u8)
 {
-  Trace::prepareMsg(type_u8, std::to_string(value_u8));
+  Trace::prepareMsg(type_u8, to_string(value_u8));
   cerr << buffer_str << endl;;
 }
 

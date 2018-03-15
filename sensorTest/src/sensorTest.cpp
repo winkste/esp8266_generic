@@ -78,6 +78,7 @@ int main()
     RfProcl::SetMsgTypeId(&myMessage, 0x01);
     RfProcl::SetMsgData(&myMessage, 0xa5a5);
     RfProcl::CalculateChkSum(&myMessage);
+    RfProcl::VerifyMessage(&myMessage);
 
     /*cout << "Msg verified: " << RfProcl::VerifyMessage(&myMessage) << endl;
     cout << "FromNode Id: " << (uint32_t)RfProcl::GetFromNodeId(&myMessage) << endl;

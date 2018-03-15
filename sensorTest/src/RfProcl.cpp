@@ -104,14 +104,14 @@ bool RfProcl::VerifyMessage(msg_t *msg_p)
     bool msgCorrect_bol = true;
     uint8_t tmpChkSum_u8 = 0u;
 
-    msgCorrect_bol &= MSG_PREAMBLE & msg_p->header_u8;
-    msgCorrect_bol &= MSG_POSTAMBLE & msg_p->header_u8;
+    msgCorrect_bol &= (0 != (MSG_PREAMBLE & msg_p->header_u8));
+    msgCorrect_bol &= (0 != (MSG_POSTAMBLE & msg_p->header_u8));
     tmpChkSum_u8 += msg_p->header_u8;
     tmpChkSum_u8 += (uint8_t)(msg_p->data_u16 >> 8);
     tmpChkSum_u8 += (uint8_t)(msg_p->data_u16 & 0x00FF);
-    msgCorrect_bol &= tmpChkSum_u8 == msg_p->chkSum_u8;
+    msgCorrect_bol &= (tmpChkSum_u8 == msg_p->chkSum_u8);
 
-    return(true);     
+    return(msgCorrect_bol);
 }
 
 /**---------------------------------------------------------------------------------------

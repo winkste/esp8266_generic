@@ -44,7 +44,14 @@ using namespace std;
 /*****************************************************************************************
  * Local constant defines
 *****************************************************************************************/
+#include <sstream>
 
+template <typename T>
+std::string to_string(const T& value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
 /*****************************************************************************************
  * Local function like makros 
 *****************************************************************************************/
@@ -188,7 +195,7 @@ void TraceSerial::println(uint8_t type_u8, char *msg_pc)
 *//*-----------------------------------------------------------------------------------*/
 void TraceSerial::print(uint8_t type_u8, uint8_t value_u8)
 {
-  Trace::prepareMsg(type_u8, std::to_string(value_u8));
+  Trace::prepareMsg(type_u8, to_string(value_u8));
   cout << buffer_str;
 }
 
@@ -203,7 +210,7 @@ void TraceSerial::print(uint8_t type_u8, uint8_t value_u8)
 *//*-----------------------------------------------------------------------------------*/
 void TraceSerial::println(uint8_t type_u8, uint8_t value_u8)
 {
-  Trace::prepareMsg(type_u8, std::to_string(value_u8));
+  Trace::prepareMsg(type_u8, to_string(value_u8));
   cout << buffer_str << endl;;
 }
 
