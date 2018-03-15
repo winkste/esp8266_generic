@@ -67,6 +67,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Include Interfaces */
 #include <stdint.h>
+#include <stddef.h>
 
 #include "RfProcl.h"
 

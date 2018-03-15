@@ -68,6 +68,20 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Global constant defines: */
+#define TO_NODE_ID_00       0x00u
+#define TO_NODE_ID_01       0x01u
+#define TO_NODE_ID_02       0x02u
+#define TO_NODE_ID_03       0x03u
+
+#define FROM_NODE_ID_00     0x00u
+#define FROM_NODE_ID_01     0x01u
+#define FROM_NODE_ID_02     0x02u
+#define FROM_NODE_ID_03     0x03u
+
+#define MSG_ID_00           0x00u
+#define MSG_ID_01           0x01u
+#define MSG_ID_02           0x02u
+#define MSG_ID_03           0x03u
 
 /****************************************************************************************/
 /* Global function like macro defines (to be avoided): */
