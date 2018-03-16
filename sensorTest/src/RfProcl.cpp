@@ -313,11 +313,16 @@ bool RfProcl::CalculateChkSum(msg_t *msg_p)
 uint32_t RfProcl::GetRawData(msg_t *msg_p)
 {
     uint32_t rawData_u32;
+    /*uint16_t data_u16a[2];
 
-    rawData_u32 =   msg_p->header_u8 << 24;
-    rawData_u32 +=  msg_p->data_u16 << 8;
-    rawData_u32 += msg_p->chkSum_u8;
-
+    data_u16a[0] = (uint16_t)((((uint16_t)myMessage_s.header_u8) << 8) + ((myMessage_s.data_u16 & 0xFF00) >> 8));
+    data_u16a[1] = (uint16_t)(((myMessage_s.data_u16 & 0x00FF) << 8) + myMessage_s.chkSum_u8);
+    rawData_u32 = ((uint32_t)(data_u16a[0]) << 16) + data_u16a[1];*/
+    
+    rawData_u32 =  (msg_p->chkSum_u8);
+    rawData_u32 += ((uint32_t)msg_p->data_u16 << 8);
+    rawData_u32 += ((uint32_t)msg_p->header_u8 << 24);
+    
     return(rawData_u32);
 }
 
@@ -331,8 +336,9 @@ uint32_t RfProcl::GetRawData(msg_t *msg_p)
 *//*-----------------------------------------------------------------------------------*/
 void RfProcl::SetRawData(msg_t *msg_p, uint32_t rawData_u32)
 {
-
-    *((uint32_t *)msg_p) = rawData_u32;
+    msg_p->header_u8 = (uint8_t)((rawData_u32 & 0xFF000000) >> 24);
+    msg_p->data_u16 = (uint16_t)((rawData_u32 & 0x00FFFF00) >> 8);
+    msg_p->chkSum_u8 = (uint8_t)(rawData_u32 & 0x000000FF);
 }
 
 /****************************************************************************************/
