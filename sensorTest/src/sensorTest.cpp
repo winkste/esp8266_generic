@@ -80,12 +80,32 @@ int main()
     RfProcl::CalculateChkSum(&myMessage);
     RfProcl::VerifyMessage(&myMessage);
 
-    /*cout << "Msg verified: " << RfProcl::VerifyMessage(&myMessage) << endl;
+    RfProcl::InitializeMessage(&myMessage);
+    RfProcl::SetFromNodeId(&myMessage, FROM_NODE_ID_03);
+    RfProcl::SetToNodeId(&myMessage, TO_NODE_ID_03);
+    RfProcl::SetMsgTypeId(&myMessage, MSG_ID_03);
+    RfProcl::SetMsgData(&myMessage, 0xa5a5);
+    RfProcl::CalculateChkSum(&myMessage);
+    cout << RfProcl::GetRawData(&myMessage) << endl;
+
+    cout << "Msg verified: " << RfProcl::VerifyMessage(&myMessage) << endl;
     cout << "FromNode Id: " << (uint32_t)RfProcl::GetFromNodeId(&myMessage) << endl;
     cout << "ToNode Id: " << (uint32_t)RfProcl::GetToNodeId(&myMessage) << endl;
     cout << "Msg Id: " << (uint32_t)RfProcl::GetMsgTypeId(&myMessage) << endl;
     cout << "Msg Data: " << (uint32_t)RfProcl::GetMsgData(&myMessage) << endl;
-    cout << "Raw Msg: " << (uint32_t)RfProcl::GetRawData(&myMessage) << endl;*/
+    cout << "Raw Msg: " << (uint32_t)RfProcl::GetRawData(&myMessage) << endl;
+    RfProcl::SetMsgTypeId(&myMessage, MSG_ID_02);
+    RfProcl::SetFromNodeId(&myMessage, FROM_NODE_ID_02);
+    RfProcl::SetToNodeId(&myMessage, TO_NODE_ID_02);
+    cout << "FromNode Id: " << (uint32_t)RfProcl::GetFromNodeId(&myMessage) << endl;
+    cout << "ToNode Id: " << (uint32_t)RfProcl::GetToNodeId(&myMessage) << endl;
+    cout << "Msg Id: " << (uint32_t)RfProcl::GetMsgTypeId(&myMessage) << endl;
+    RfProcl::SetMsgTypeId(&myMessage, MSG_ID_01);
+    RfProcl::SetFromNodeId(&myMessage, FROM_NODE_ID_01);
+    RfProcl::SetToNodeId(&myMessage, TO_NODE_ID_01);
+    cout << "FromNode Id: " << (uint32_t)RfProcl::GetFromNodeId(&myMessage) << endl;
+    cout << "ToNode Id: " << (uint32_t)RfProcl::GetToNodeId(&myMessage) << endl;
+    cout << "Msg Id: " << (uint32_t)RfProcl::GetMsgTypeId(&myMessage) << endl;
 
     myLogger_p->print(trace_INFO_MSG, "This is a first RfProtocol Test: FromNode: ");
     myLogger_p->print(trace_PURE_MSG, RfProcl::GetFromNodeId(&myMessage));
@@ -96,6 +116,7 @@ int main()
     myLogger_p->print(trace_PURE_MSG, "; MsgData: ");
     myLogger_p->print(trace_PURE_MSG, RfProcl::GetMsgData(&myMessage));
     myLogger_p->print(trace_PURE_MSG, "; RawData: ");
+    myLogger_p->print(trace_PURE_MSG, RfProcl::GetRawData(&myMessage));
 
 	return 0;
 }
