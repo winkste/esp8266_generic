@@ -20,3 +20,9 @@ sensorTest/Debug/src/sensorTest.o
 *.o
 sensorTest/Debug/src/DhtSensor.o
 sensorTest/Debug/src/DhtSensor.d
+
+*.o
+
+*.d
+
+sensorTest/Debug/src/DhtSensor.d
