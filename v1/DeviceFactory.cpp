@@ -46,11 +46,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Pir.h"
 #include "McpGpio.h"
 #include "EspGpio.h"
+#include "Bme280Sensor.h"
 
 /****************************************************************************************/
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_BME_SENSOR           0x0Au
 #define CAPABILITY_FOUR_RELAY_MCP       0x09u
 #define CAPABILITY_FOUR_RELAY           0x08u
 #define CAPABILITY_PIR_RELAY            0x05u
@@ -217,6 +219,11 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_FOUR, OUTPUT);
             device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_FOUR, true);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device four");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_BME_SENSOR:
+            device_p = new Bme280Sensor(trace_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated bme device");
             deviceList_p->add(device_p);
             break;
         default:

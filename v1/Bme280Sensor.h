@@ -1,41 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        RfDht.h
+* FILENAME :        Bme280Sensor.h
 *
 * DESCRIPTION :
-*       Implementation of the RfDht sensor device
-*           The messages expected from transmitter are expected in the following format:
-*           expecting the max send payload per message to be 32Bit.
-*           32 bit
-*           -------------------------------------------------
-*           | 31 - 25   | 24 - 16   | 15 - 8    | 7 - 0     |
-*           -------------------------------------------------
-*           |   Header  |    16 bit DataWord    | CheckSum  |
-*           -------------------------------------------------
-*
-*           The Header includes node and payload identification:
-*           -------------------------------------------------
-*           | 7     | 6 - 5   | 4 - 3   | 2 - 1   | 0       |
-*           -------------------------------------------------
-*           | PreAmb| ToNode  | FrNode  | MsgId   | PostAmb |
-*           -------------------------------------------------           
-*           PreAmb: The message header starts with a 1 bit preamble set to 1.
-
-*           ToNode: This is the receiver identifier to generate a pointed message. 
-*               The system currently supports 4 different receivers within one network 
-*               range: 00, 10, 01, 11
-*
-*           FrNode: it is possible to connect up to 4 nodes to one base, the node id's 
-*               have to be unique, therefore the identifier can be defined out of two
-*               bits: 00, 01, 10, 11
-*           MsgId: Is used to identify the payload of this node. 4 different
-*               payloads are currently supported:
-*                   00 : Temperature
-*                   01 : Humidity
-*                   10 : Battery Voltage
-*                   11 : Package send counter
-*           PostAmb: is the header end identifier and is always 1
-*
-*           CheckSum: A bytewise and of the three bytes message. 
+*       Class header for BME280 sensor 
 *
 * NOTES :
 *
@@ -59,18 +26,19 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef RFDHT_H_
-#define RFDHT_H_
+#ifndef BME280SENSOR_H_
+#define BME280SENSOR_H_
 
 /****************************************************************************************/
 /* Imported header files: */
+#include <ESP8266WiFi.h>         
+#include <PubSubClient.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 
 #include "MqttDevice.h"
 #include "Trace.h"
-
-#include <ESP8266WiFi.h>         
-#include <PubSubClient.h>
-#include <RCSwitch.h>
+#include "PubSubClient.h"
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -81,62 +49,53 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
 
-typedef struct rfDht_msg_tag
-{
-    uint8_t header_u8;
-    uint16_t data_u16;
-    uint8_t chkSum_u8;
-}rfDht_msg_t;
-
-typedef union rfDht_msgConverter_tag
-{
-    uint32_t rawData_u32;
-    rfDht_msg_t msg_s;
-}rfDht_msgConverter_t;
-
 /****************************************************************************************/
 /* Class definition: */
-class RfDht : public MqttDevice
+class Bme280Sensor : public MqttDevice
 {
     public:
         /********************************************************************************/
         /* Public data definitions */
-        static RfDht *mySelf_p;
-        static uint32_t pirMotionDetect_u32;
-        static uint8_t counterButton_u8;
+        Adafruit_BME280     *bme_p;
+        float               humidity_f32        = 0.0;
+        float               temperature_f32     = 0.0; 
+        float               altitude_f32        = 40.00;
+        float               pressure_f32        = 1000.00;
+        uint32_t            prevTime_u32        = 0;
+        uint16_t            publications_u16    = 0;
+
         /********************************************************************************/
         /* Public function definitions: */
-        static bool verifyMessage(rfDht_msg_t *msg_p);
-        static uint8_t getToNodeId(rfDht_msg_t *msg_);
-        static uint8_t getFromNodeId(rfDht_msg_t *msg_p);
-        static uint8_t getMsgTypeId(rfDht_msg_t *msg_p);
-        static uint16_t getMsgData(rfDht_msg_t *msg_p);
-        
-        RfDht(Trace *p_trace);
-        RfDht(Trace *p_trace, uint8_t rfPin_u8);
+        Bme280Sensor(Trace *p_trace);
+        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol);
+        // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
         void Initialize();
         void Reconnect(PubSubClient *client_p, const char *dev_p);
         virtual
-        ~RfDht();
+        ~Bme280Sensor();
     private:
         /********************************************************************************/
-        /* Private data definitions */ 
-        boolean publishState_bol      = true;
-        uint8_t rfPin_u8             = 0u;
+        /* Private data definitions */
+        uint32_t publishData_u32;
         char buffer_ca[100];
-        
+        bool powerSaveMode_bol;
+
         /********************************************************************************/
         /* Private function definitions: */
         char* build_topic(const char *topic);
+        
     protected:
         /********************************************************************************/
         /* Protected data definitions */
-
+        
         /********************************************************************************/
         /* Protected function definitions: */
+        char *f2s(float f, int p);
+        void TurnBmeOn();
+        void TurnBmeOff();
 
 };
 
-#endif /* RFDHT_H_ */
+#endif /* BME280SENSOR_H_ */
