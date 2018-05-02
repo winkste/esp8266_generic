@@ -85,6 +85,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
 
+#define BME_PWR_PIN                     WEMOS_PIN_D3
+#define BME_LED_PIN                     WEMOS_PIN_D4
+
 
 #define MQTT_CHAN_ONE                   "relay_one"
 #define MQTT_CHAN_TWO                   "relay_two"
@@ -140,6 +143,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
     SonoffBasic *sonoffDevice_p = NULL;
     Pir *pirDevice_p = NULL;
     GpioDevice *gpio_p = NULL;
+    GpioDevice *gpio2_p = NULL;
 
     switch(cap_u8)
     {
@@ -222,7 +226,9 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_BME_SENSOR:
-            device_p = new Bme280Sensor(trace_p);
+            gpio_p   = new EspGpio(trace_p, BME_PWR_PIN, OUTPUT);
+            gpio2_p   = new EspGpio(trace_p, BME_LED_PIN, OUTPUT);
+            device_p = new Bme280Sensor(trace_p, true, gpio_p, gpio2_p);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated bme device");
             deviceList_p->add(device_p);
             break;

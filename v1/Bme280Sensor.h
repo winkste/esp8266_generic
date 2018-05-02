@@ -39,6 +39,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "MqttDevice.h"
 #include "Trace.h"
 #include "PubSubClient.h"
+#include "GpioDevice.h"
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -66,8 +67,9 @@ class Bme280Sensor : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        Bme280Sensor(Trace *p_trace);
-        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol);
+        /*Bme280Sensor(Trace *p_trace);
+        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol);*/
+        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol, GpioDevice  *bmePwr_p, GpioDevice  *bmeStat_p);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -78,9 +80,11 @@ class Bme280Sensor : public MqttDevice
     private:
         /********************************************************************************/
         /* Private data definitions */
-        uint32_t publishData_u32;
-        char buffer_ca[100];
-        bool powerSaveMode_bol;
+        uint32_t    publishData_u32;
+        char        buffer_ca[100];
+        bool        powerSaveMode_bol;
+        GpioDevice  *bmePwr_p;
+        GpioDevice  *bmeStat_p;
 
         /********************************************************************************/
         /* Private function definitions: */
@@ -95,7 +99,8 @@ class Bme280Sensor : public MqttDevice
         char *f2s(float f, int p);
         void TurnBmeOn();
         void TurnBmeOff();
-
+        void TurnStatusOn();
+        void TurnStatusOff(); 
 };
 
 #endif /* BME280SENSOR_H_ */
