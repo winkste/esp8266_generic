@@ -55,6 +55,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 014       21.01         SWI     set dht update rate to 30secs
 * 015       28.01         SWI     rework trace topic structure
 * 016       11.02         SWI     add Generic GPIO device and MCP23017 I2C
+* 017       15.05         SWI     add capability for 8 channel relay
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -65,7 +66,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "016"     // Firmware Version
+#define FW_VERSION                "017"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

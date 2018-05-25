@@ -38,6 +38,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "MqttDevice.h"
 #include "Trace.h"
 #include "PubSubClient.h"
+#include "GpioDevice.h"
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -65,6 +66,7 @@ class DhtSensor : public MqttDevice
         /* Public function definitions: */
         DhtSensor(Trace *p_trace);
         DhtSensor(Trace *p_trace, bool powerSaveMode_bol);
+        DhtSensor(Trace *p_trace, bool powerSaveMode_bol, uint8_t dhtPin_u8, GpioDevice *pwrPin_p);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -78,6 +80,8 @@ class DhtSensor : public MqttDevice
         uint32_t publishData_u32;
         char buffer_ca[100];
         bool powerSaveMode_bol;
+        uint8_t dhtPin_u8;
+        GpioDevice *pwrPin_p;
 
         /********************************************************************************/
         /* Private function definitions: */

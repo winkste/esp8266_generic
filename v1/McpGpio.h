@@ -59,6 +59,7 @@ class McpGpio : public GpioDevice
         McpGpio(Trace *p_trace);
         McpGpio(Trace *p_trace, uint8_t pin_u8);
         McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
+        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8, GpioDevice *nReset_p);
 
         void PinMode(uint8_t dir_u8);
         void DigitalWrite(uint8_t state_u8);
@@ -71,6 +72,7 @@ class McpGpio : public GpioDevice
         static uint8_t mcpAddr_u8;
         static bool mcpInitialized_bol;
         uint8_t stat_u8;
+        GpioDevice *nReset_p;
 
         /********************************************************************************/
         /* Private function definitions: */

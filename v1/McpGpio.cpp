@@ -103,6 +103,24 @@ McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8) : GpioDevice(p_
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     Constructur for McpGpio
+ * @author    winkste
+ * @date      06. Feb. 2018
+ * @param     p_trace   trace object for debug output
+ * @param     pin_u8    corresponding pin
+ * @param     dir_u8    direction of pin
+ * @return    a GpioDevice object
+*//*-----------------------------------------------------------------------------------*/
+McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8, GpioDevice *nReset_p) : GpioDevice(p_trace, pin_u8, dir_u8)
+{
+    this->p_trace->println(trace_INFO_MSG, "<<mcpGpio>> Constructor of MCPDevice called");
+    this->nReset_p = nReset_p;
+    this->stat_u8 = 0;
+    this->Initialize();
+    this->PinMode();
+}
+
+/**---------------------------------------------------------------------------------------
  * @brief     Default destructor
  * @author    winkste
  * @date      06. Feb. 2018
@@ -186,6 +204,11 @@ void McpGpio::Initialize()
 {
     if(false == this->mcpInitialized_bol)
     {
+        if(NULL != this->nReset_p)
+        {
+            this->nReset_p->PinMode(gpioDevice_OUTPUT);
+            this->nReset_p->DigitalWrite(gpioDevice_HIGH);
+        }
         this->mcp.begin();      // use default address 0
         this->mcpInitialized_bol = true;
         this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> MCP initialized");

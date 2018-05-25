@@ -52,6 +52,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_EIGHT_RELAY_MCP      0x0Bu
 #define CAPABILITY_BME_SENSOR           0x0Au
 #define CAPABILITY_FOUR_RELAY_MCP       0x09u
 #define CAPABILITY_FOUR_RELAY           0x08u
@@ -81,6 +82,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define RELAY_MCP_PIN_TWO               1
 #define RELAY_MCP_PIN_THREE             2
 #define RELAY_MCP_PIN_FOUR              3
+#define RELAY_MCP_PIN_FIVE              4
+#define RELAY_MCP_PIN_SIX               5
+#define RELAY_MCP_PIN_SEVEN             6
+#define RELAY_MCP_PIN_EIGHT             7
+
+#define DHT_DATA_PIN                    WEMOS_PIN_D3
+#define DHT_PWR_PIN                     WEMOS_PIN_D4
 
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
@@ -93,6 +101,10 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_CHAN_TWO                   "relay_two"
 #define MQTT_CHAN_THREE                 "relay_three"
 #define MQTT_CHAN_FOUR                  "relay_four"
+#define MQTT_CHAN_FIVE                  "relay_five"
+#define MQTT_CHAN_SIX                   "relay_six"
+#define MQTT_CHAN_SEVEN                 "relay_seven"
+#define MQTT_CHAN_EIGHT                 "relay_eight"
 
 
 /****************************************************************************************/
@@ -223,6 +235,44 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_FOUR, OUTPUT);
             device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_FOUR, true);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device four");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_EIGHT_RELAY_MCP:
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_ONE, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_ONE, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device one");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_TWO, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_TWO, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device two");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_THREE, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_THREE, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device three");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_FOUR, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_FOUR, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device four");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_FIVE, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_FIVE, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device five");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_SIX, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_SIX, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device six");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_SEVEN, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_SEVEN, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device seven");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, RELAY_MCP_PIN_EIGHT, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_EIGHT, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device eight");
+            deviceList_p->add(device_p);
+            gpio_p   = new McpGpio(trace_p, DHT_PWR_PIN, OUTPUT);
+            device_p = new DhtSensor(trace_p, false, DHT_DATA_PIN, gpio_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_BME_SENSOR:

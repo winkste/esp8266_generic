@@ -43,8 +43,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Local constant defines */
-#define DHTPIN                    5u  // D1
-#define DHT_PWR                   4u  // D2
+#define DEFAULT_DHTPIN            5u  // D1
 
 #define TEMPERATURE_CORR_FACTOR   1.00f
 #define HUMIDITY_CORR_FACTOR      1.23f
@@ -83,7 +82,8 @@ DhtSensor::DhtSensor(Trace *p_trace) : MqttDevice(p_trace)
     this->prevTime_u32 = 0;
     this->publications_u16 = 0;
     this->powerSaveMode_bol = false;
-    dht_p = new DHT(DHTPIN, DHTTYPE, 11);
+    pwrPin_p = NULL;
+    dht_p = new DHT(DEFAULT_DHTPIN, DHTTYPE, 11);
 
 }
 
@@ -100,7 +100,30 @@ DhtSensor::DhtSensor(Trace *p_trace, bool powerSaveMode_bol) : MqttDevice(p_trac
     this->prevTime_u32 = 0;
     this->publications_u16 = 0;
     this->powerSaveMode_bol = powerSaveMode_bol;
-    dht_p = new DHT(DHTPIN, DHTTYPE, 11);
+    pwrPin_p = NULL;
+    dht_p = new DHT(DEFAULT_DHTPIN, DHTTYPE, 11);
+
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for DhtSensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace             trace object for info and error messages
+ * @param     powerSaveMode_bol   true = power save mode active, else false
+ * @param     dhtPin_u8           pin identifier for dht data pin
+ * @param     pwrPin_p            handle to power pin of gen tyype GpioDevice
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+DhtSensor::DhtSensor(Trace *p_trace, bool powerSaveMode_bol, 
+                        uint8_t dhtPin_u8, GpioDevice *pwrPin_p) : MqttDevice(p_trace)
+{
+    this->prevTime_u32 = 0;
+    this->publications_u16 = 0;
+    this->dhtPin_u8 = dhtPin_u8;
+    this->pwrPin_p = pwrPin_p;
+    this->powerSaveMode_bol = powerSaveMode_bol;
+    dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
 
 }
 
@@ -123,14 +146,9 @@ DhtSensor::~DhtSensor()
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::Initialize()
 {
-    p_trace->println(trace_INFO_MSG, "DHT sensor initialized");
-    
-    // power up the DHT
-    p_trace->println(trace_INFO_MSG, "Power up DHT");
-    pinMode(DHT_PWR, OUTPUT);
-    digitalWrite(DHT_PWR, LOW);
-    delay(500);   
-    // start dht
+    // ensure DHT is powered down
+    p_trace->println(trace_INFO_MSG, "<<dht>> initialize");
+    this->TurnDHTOff();   
     this->isInitialized_bol = true;
 }
 
@@ -324,13 +342,16 @@ char* DhtSensor::f2s(float f, int p)
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::TurnDHTOn() 
 { 
-  digitalWrite(DHT_PWR, HIGH);
-  delay(500);
-  
-  // start dht
-  dht_p->begin(); 
-
-  delay(500);
+    if(NULL != pwrPin_p)
+    {
+        this->pwrPin_p->DigitalWrite(HIGH);
+        p_trace->println(trace_INFO_MSG, "<<dht>>dht turned on");
+    }
+    
+    delay(500);
+    // start dht
+    dht_p->begin(); 
+    delay(500);  
 }
 
 /**---------------------------------------------------------------------------------------
@@ -341,7 +362,11 @@ void DhtSensor::TurnDHTOn()
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::TurnDHTOff() 
 { 
-  digitalWrite(DHT_PWR, LOW); 
+    if(NULL != pwrPin_p)
+    {
+        this->pwrPin_p->DigitalWrite(LOW);
+        p_trace->println(trace_INFO_MSG, "<<dht>>dht turned off");
+    }
 }
 
 /**---------------------------------------------------------------------------------------
