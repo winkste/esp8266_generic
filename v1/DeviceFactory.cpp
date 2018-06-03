@@ -47,6 +47,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "McpGpio.h"
 #include "EspGpio.h"
 #include "Bme280Sensor.h"
+#include "PowerSave.h"
 
 /****************************************************************************************/
 /* Local constant defines */
@@ -86,15 +87,24 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define RELAY_MCP_PIN_SIX               5
 #define RELAY_MCP_PIN_SEVEN             6
 #define RELAY_MCP_PIN_EIGHT             7
+#define DHT_R8_OUT_DATA_PIN             WEMOS_PIN_D3
+#define DHT_R8_OUT_PWR_PIN              WEMOS_PIN_D7
+#define DHT_R8_IN_DATA_PIN              WEMOS_PIN_D8
+#define DHT_R8_IN_PWR_PIN               WEMOS_PIN_D6
+#define DHT_R8_REPORT_CYCLE_TIME        60u
 
-#define DHT_DATA_PIN                    WEMOS_PIN_D3
-#define DHT_PWR_PIN                     WEMOS_PIN_D4
+
+#define DHT_POWER_ON_TIME               15u
+#define DHT_DEEPSLEEP_TIME              60u
 
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
 
 #define BME_PWR_PIN                     WEMOS_PIN_D3
 #define BME_LED_PIN                     WEMOS_PIN_D4
+#define BME_REPORT_CYCLE_TIME           5u
+#define BME_POWER_ON_TIME               5u
+#define BME_DEEPSLEEP_TIME              60u
 
 
 #define MQTT_CHAN_ONE                   "relay_one"
@@ -186,8 +196,11 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_DHT_SENSOR_BAT:
-            device_p = new DhtSensor(trace_p, true);
-            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device with bat support");
+            device_p = new DhtSensor(trace_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            deviceList_p->add(device_p);
+            device_p = new PowerSave(trace_p, true, DHT_POWER_ON_TIME, DHT_DEEPSLEEP_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated power save device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_FOUR_RELAY:
@@ -270,16 +283,23 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_EIGHT, false);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device eight");
             deviceList_p->add(device_p);
-            gpio_p   = new McpGpio(trace_p, DHT_PWR_PIN, OUTPUT);
-            device_p = new DhtSensor(trace_p, false, DHT_DATA_PIN, gpio_p);
-            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            gpio_p   = new EspGpio(trace_p, DHT_R8_OUT_PWR_PIN, OUTPUT);
+            device_p = new DhtSensor(trace_p, DHT_R8_OUT_DATA_PIN, gpio_p, DHT_R8_REPORT_CYCLE_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated outside dht device");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, DHT_R8_IN_PWR_PIN, OUTPUT);
+            device_p = new DhtSensor(trace_p, DHT_R8_IN_DATA_PIN, gpio_p, DHT_R8_REPORT_CYCLE_TIME, 1);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated inside dht device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_BME_SENSOR:
             gpio_p   = new EspGpio(trace_p, BME_PWR_PIN, OUTPUT);
             gpio2_p   = new EspGpio(trace_p, BME_LED_PIN, OUTPUT);
-            device_p = new Bme280Sensor(trace_p, true, gpio_p, gpio2_p);
+            device_p = new Bme280Sensor(trace_p, gpio_p, gpio2_p, BME_REPORT_CYCLE_TIME);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated bme device");
+            deviceList_p->add(device_p);
+            device_p = new PowerSave(trace_p, true, BME_POWER_ON_TIME, BME_DEEPSLEEP_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated power save device");
             deviceList_p->add(device_p);
             break;
         default:

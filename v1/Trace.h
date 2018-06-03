@@ -97,6 +97,8 @@ class Trace
         void println(uint8_t type_u8, String msg_str);
         void print(uint8_t type_u8, uint8_t value_u8);
         void println(uint8_t type_u8, uint8_t value_u8);
+        void print(uint8_t type_u8, uint16_t value_u16);
+        void println(uint8_t type_u8, uint16_t value_u16);
 
     private:
         /********************************************************************************/

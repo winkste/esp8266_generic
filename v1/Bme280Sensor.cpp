@@ -47,11 +47,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MAX_PUBS_TILL_POWER_SAVE  1u   // send X times data than go to sleep
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
 #define MILLISEC_IN_SEC           1000l // milliseconds in seconds
-#define POWER_SAVE_TIME           20l * MICROSEC_IN_SEC  // = 60 secs = 1 mins power save
-
-#define MQTT_SUB_BME_CMD          "/r/bme/cmd" // command message for dht
-#define MQTT_PAYLOAD_CMD_ON       "ON"
-#define MQTT_PAYLOAD_CMD_OFF      "OFF"
 
 #define MQTT_PUB_TEMPERATURE      "/s/bme/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/s/bme/hum" // humidity data
@@ -61,9 +56,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_REPORT_INTERVAL      5l * MILLISEC_IN_SEC// = 5 seconds between reports
 
 #define SEALEVELPRESSURE_HPA      1013.25f
-
-//#define WEMOS_PIN_D4              2u  // D4
-//#define BME_PWR                   WEMOS_PIN_D4
 
 #define HUMIDITY_CORR_FACTOR      1.0f
 #define TEMPERATURE_CORR_FACTOR   1.0f
@@ -83,57 +75,39 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * @brief     Constructor for Bme280Sensor
  * @author    winkste
  * @date      20 Okt. 2017
- * @param     p_trace     trace object for info and error messages
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-/*Bme280Sensor::Bme280Sensor(Trace *p_trace) : MqttDevice(p_trace)
-{
-    this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->powerSaveMode_bol = false;
-    bme_p = new Adafruit_BME280();
-
-}*/
-
-/**---------------------------------------------------------------------------------------
- * @brief     Constructor for Bme280Sensor
- * @author    winkste
- * @date      20 Okt. 2017
  * @param     p_trace             trace object for info and error messages
- * @param     powerSaveMode_bol   true = power save mode active, else false
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-/*Bme280Sensor::Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol) : MqttDevice(p_trace)
-{
-    this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->powerSaveMode_bol = powerSaveMode_bol;
-    bme_p = new Adafruit_BME280();
-
-}*/
-
-/**---------------------------------------------------------------------------------------
- * @brief     Constructor for Bme280Sensor
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     p_trace             trace object for info and error messages
- * @param     powerSaveMode_bol   true = power save mode active, else false
  * @param     bmePwr_p            pointer to power gpio pin
  * @param     bmeStat_p           pointer to bme sensor status pin (power up)
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-Bme280Sensor::Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol, GpioDevice  *bmePwr_p, 
-                            GpioDevice  *bmeStat_p) : MqttDevice(p_trace)
+Bme280Sensor::Bme280Sensor(Trace *p_trace, GpioDevice  *bmePwr_p, 
+                                        GpioDevice  *bmeStat_p) : MqttDevice(p_trace)
 {
     this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->powerSaveMode_bol = powerSaveMode_bol;
     this->bmePwr_p = bmePwr_p;
     this->bmeStat_p = bmeStat_p;
-    bme_p = new Adafruit_BME280();
-    this->powerSaveMode_bol = true;
-    this->publications_u16 = 0u;
+    this->bme_p = new Adafruit_BME280();
+    this->reportCycleMSec_u32 = MQTT_REPORT_INTERVAL;
+}
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for Bme280Sensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace             trace object for info and error messages
+ * @param     bmePwr_p            pointer to power gpio pin
+ * @param     bmeStat_p           pointer to bme sensor status pin (power up)
+ * @param     reportCycleSec_u16  cycle time in seconds between reports
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+Bme280Sensor::Bme280Sensor(Trace *p_trace, GpioDevice  *bmePwr_p, GpioDevice  *bmeStat_p, 
+                                  uint16_t reportCycleSec_u16) : MqttDevice(p_trace)
+{
+    this->prevTime_u32 = 0;
+    this->bmePwr_p = bmePwr_p;
+    this->bmeStat_p = bmeStat_p;
+    this->bme_p = new Adafruit_BME280();
+    this->reportCycleMSec_u32 = reportCycleSec_u16 * MILLISEC_IN_SEC;
 }
 /**---------------------------------------------------------------------------------------
  * @brief     Default destructor
@@ -153,13 +127,11 @@ Bme280Sensor::~Bme280Sensor()
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 void Bme280Sensor::Initialize()
-{
+{    
+    // initialize pins and turn off bme
     p_trace->println(trace_INFO_MSG, "<<bme>> BME sensor initialized");
-    
-    // power up the DHT
-    p_trace->println(trace_INFO_MSG, "Power up BME");
-    this->TurnStatusOn();
-    this->TurnBmeOn();
+    this->TurnStatusOff();
+    this->TurnBmeOff();
     delay(500);   
     this->isInitialized_bol = true;
 }
@@ -179,12 +151,6 @@ void Bme280Sensor::Reconnect(PubSubClient *client_p, const char *dev_p)
         this->dev_p = dev_p;
         this->isConnected_bol = true;
         p_trace->println(trace_INFO_MSG, "<<bme>> BME Sensor connected");
-        // ... and resubscribe
-        // dht sensor
-        client_p->subscribe(build_topic(MQTT_SUB_BME_CMD));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<bme>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, MQTT_SUB_BME_CMD);
     }
     else
     {
@@ -208,27 +174,8 @@ void Bme280Sensor::CallbackMqtt(PubSubClient *client, char* p_topic, String p_pa
 {
     if(true == this->isConnected_bol)
     {
-        // received bme command
-        if (String(build_topic(MQTT_SUB_BME_CMD)).equals(p_topic)) 
-        {
-            p_trace->println(trace_INFO_MSG, "<<bme>> BME Sensor mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
-            // test if the payload is equal to "ON" or "OFF"
-            if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
-            {
-                this->powerSaveMode_bol = false; 
-            }
-            else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
-            {
-                this->powerSaveMode_bol = true;
-            }
-            else
-            {
-                p_trace->print(trace_ERROR_MSG, "<<bme>> unexpected payload: "); 
-                p_trace->println(trace_PURE_MSG, p_payload);
-            }   
-        } 
+        p_trace->print(trace_ERROR_MSG, "<<bme>> unexpected payload: "); 
+        p_trace->println(trace_PURE_MSG, p_payload);
     }
     else
     {
@@ -248,7 +195,7 @@ bool Bme280Sensor::ProcessPublishRequests(PubSubClient *client)
     String tPayload;
     boolean ret = false;
 
-    if(this->prevTime_u32 + MQTT_REPORT_INTERVAL < millis() || this->prevTime_u32 == 0)
+    if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
     {      
         // the sensor data publication is time interval based
         if(true == this->isConnected_bol)
@@ -312,20 +259,6 @@ bool Bme280Sensor::ProcessPublishRequests(PubSubClient *client)
                 ret = client->publish(build_topic(MQTT_PUB_ALTITUDE), 
                                         f2s(this->altitude_f32, 2), true);
                 p_trace->println(trace_PURE_MSG, f2s(this->altitude_f32, 2)); 
-                this->publications_u16++;
-            }
-            if(MAX_PUBS_TILL_POWER_SAVE <= this->publications_u16)
-            {
-                this->publications_u16 = 0;
-                if(true == this->powerSaveMode_bol)
-                {
-                    this->TurnBmeOff();
-                    this->TurnStatusOff();
-                    // power save time in seconds
-                    p_trace->println(trace_INFO_MSG, "<<bme>> GoTo Power Save Mode");
-                    ESP.deepSleep(POWER_SAVE_TIME); 
-                    delay(100);
-                }
             }
         } 
         else
@@ -377,9 +310,12 @@ char* Bme280Sensor::f2s(float f, int p)
 *//*-----------------------------------------------------------------------------------*/
 void Bme280Sensor::TurnBmeOn() 
 { 
-  bmePwr_p->DigitalWrite(HIGH);
-  delay(500);
-  
+  if(NULL != this->bmePwr_p)
+  {
+      bmePwr_p->DigitalWrite(HIGH);
+      delay(500);
+  }
+
   // start dht
   bme_p->begin(); 
 
@@ -394,7 +330,10 @@ void Bme280Sensor::TurnBmeOn()
 *//*-----------------------------------------------------------------------------------*/
 void Bme280Sensor::TurnBmeOff() 
 { 
-  bmePwr_p->DigitalWrite(LOW); 
+  if(NULL != this->bmePwr_p)
+  {
+      bmePwr_p->DigitalWrite(LOW); 
+  }
 }
 
 /**---------------------------------------------------------------------------------------
@@ -405,7 +344,10 @@ void Bme280Sensor::TurnBmeOff()
 *//*-----------------------------------------------------------------------------------*/
 void Bme280Sensor::TurnStatusOn() 
 { 
-  bmeStat_p->DigitalWrite(LOW);
+  if(NULL != this->bmeStat_p)
+  {
+      bmeStat_p->DigitalWrite(LOW);
+  }
 }
 
 /**---------------------------------------------------------------------------------------
@@ -416,7 +358,10 @@ void Bme280Sensor::TurnStatusOn()
 *//*-----------------------------------------------------------------------------------*/
 void Bme280Sensor::TurnStatusOff() 
 { 
-  bmeStat_p->DigitalWrite(HIGH); 
+  if(NULL != this->bmeStat_p)
+  {
+      bmeStat_p->DigitalWrite(HIGH); 
+  }
 }
 
 /**---------------------------------------------------------------------------------------

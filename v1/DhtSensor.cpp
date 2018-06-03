@@ -49,18 +49,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define HUMIDITY_CORR_FACTOR      1.23f
 #define DHTTYPE                   DHT22 // DHT11 or DHT22
 
-#define MAX_PUBS_TILL_POWER_SAVE  1u   // send two times data than go to sleep
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
-#define POWER_SAVE_TIME           900l * MICROSEC_IN_SEC  // = 900 secs = 15mins power save
-
-#define MQTT_SUB_DHT_CMD          "/r/temp_hum/cmd" // command message for dht
-#define MQTT_PAYLOAD_CMD_ON       "ON"
-#define MQTT_PAYLOAD_CMD_OFF      "OFF"
+#define MILLISEC_IN_SEC           1000l // milliseconds in seconds
 
 #define MQTT_PUB_TEMPERATURE      "/s/temp_hum/temp" // temperature data
 #define MQTT_PUB_HUMIDITY         "/s/temp_hum/hum" // humidity data
 #define MQTT_PUB_BATTERY          "/s/temp_hum/bat" // battery capacity data
-#define MQTT_REPORT_INTERVAL      30000l //(ms) - 30 seconds between reports
+#define MQTT_REPORT_INTERVAL      (30l * MILLISEC_IN_SEC) // 30 seconds between reports
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -80,11 +75,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 DhtSensor::DhtSensor(Trace *p_trace) : MqttDevice(p_trace)
 {
     this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->powerSaveMode_bol = false;
-    pwrPin_p = NULL;
+    this->pwrPin_p = NULL;
+    this->dhtId_u8 = 0;
     dht_p = new DHT(DEFAULT_DHTPIN, DHTTYPE, 11);
-
 }
 
 /**---------------------------------------------------------------------------------------
@@ -92,39 +85,62 @@ DhtSensor::DhtSensor(Trace *p_trace) : MqttDevice(p_trace)
  * @author    winkste
  * @date      20 Okt. 2017
  * @param     p_trace             trace object for info and error messages
- * @param     powerSaveMode_bol   true = power save mode active, else false
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-DhtSensor::DhtSensor(Trace *p_trace, bool powerSaveMode_bol) : MqttDevice(p_trace)
-{
-    this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
-    this->powerSaveMode_bol = powerSaveMode_bol;
-    pwrPin_p = NULL;
-    dht_p = new DHT(DEFAULT_DHTPIN, DHTTYPE, 11);
-
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     Constructor for DhtSensor
- * @author    winkste
- * @date      20 Okt. 2017
- * @param     p_trace             trace object for info and error messages
- * @param     powerSaveMode_bol   true = power save mode active, else false
  * @param     dhtPin_u8           pin identifier for dht data pin
  * @param     pwrPin_p            handle to power pin of gen tyype GpioDevice
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-DhtSensor::DhtSensor(Trace *p_trace, bool powerSaveMode_bol, 
-                        uint8_t dhtPin_u8, GpioDevice *pwrPin_p) : MqttDevice(p_trace)
+DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, 
+                                            GpioDevice *pwrPin_p) : MqttDevice(p_trace)
 {
     this->prevTime_u32 = 0;
-    this->publications_u16 = 0;
     this->dhtPin_u8 = dhtPin_u8;
     this->pwrPin_p = pwrPin_p;
-    this->powerSaveMode_bol = powerSaveMode_bol;
-    dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
+    this->dhtId_u8 = 0;
+    this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
+    this->reportCycleMSec_u32 = MQTT_REPORT_INTERVAL;
+}
 
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for DhtSensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace             trace object for info and error messages
+ * @param     dhtPin_u8           pin identifier for dht data pin
+ * @param     pwrPin_p            handle to power pin of gen tyype GpioDevice
+ * @param     reportCycleSec_u16  cycle time in seconds between reports
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p, 
+                        uint16_t reportCycleSec_u16) : MqttDevice(p_trace)
+{
+    this->prevTime_u32 = 0;
+    this->dhtId_u8 = 0;
+    this->dhtPin_u8 = dhtPin_u8;
+    this->pwrPin_p = pwrPin_p;
+    this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
+    this->reportCycleMSec_u32 = reportCycleSec_u16 * MILLISEC_IN_SEC;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for DhtSensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace             trace object for info and error messages
+ * @param     dhtPin_u8           pin identifier for dht data pin
+ * @param     pwrPin_p            handle to power pin of gen tyype GpioDevice
+ * @param     reportCycleSec_u16  cycle time in seconds between reports
+ * @param     dhtId_u8            id different to 0, to allow more dht's on one device
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p, 
+                        uint16_t reportCycleSec_u16, uint8_t dhtId_u8) : MqttDevice(p_trace)
+{
+    this->prevTime_u32 = 0;
+    this->dhtId_u8 = dhtId_u8;
+    this->dhtPin_u8 = dhtPin_u8;
+    this->pwrPin_p = pwrPin_p;
+    this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
+    this->reportCycleMSec_u32 = reportCycleSec_u16 * MILLISEC_IN_SEC;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -167,12 +183,6 @@ void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
         this->dev_p = dev_p;
         this->isConnected_bol = true;
         p_trace->println(trace_INFO_MSG, "DHT Sensor connected");
-        // ... and resubscribe
-        // dht sensor
-        client_p->subscribe(build_topic(MQTT_SUB_DHT_CMD));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<mqtt>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, MQTT_SUB_DHT_CMD);
     }
     else
     {
@@ -194,33 +204,9 @@ void DhtSensor::Reconnect(PubSubClient *client_p, const char *dev_p)
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
 {
-    if(true == this->isConnected_bol)
+    if(true != this->isConnected_bol)
     {
-        // received DHT command
-        if (String(build_topic(MQTT_SUB_DHT_CMD)).equals(p_topic)) 
-        {
-            p_trace->println(trace_INFO_MSG, "DHT Sensor mqtt callback");
-            p_trace->println(trace_INFO_MSG, p_topic);
-            p_trace->println(trace_INFO_MSG, p_payload);
-            // test if the payload is equal to "ON" or "OFF"
-            if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
-            {
-                this->powerSaveMode_bol = false; 
-            }
-            else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
-            {
-                this->powerSaveMode_bol = true;
-            }
-            else
-            {
-                p_trace->print(trace_ERROR_MSG, "<<mqtt>> unexpected payload: "); 
-                p_trace->println(trace_PURE_MSG, p_payload);
-            }   
-        } 
-    }
-    else
-    {
-        p_trace->println(trace_ERROR_MSG, "connection failure in DHT CallbackMqtt "); 
+        p_trace->println(trace_ERROR_MSG, "<<dht>> connection failure in DHT CallbackMqtt "); 
     }
 }
 
@@ -236,7 +222,7 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
     String tPayload;
     boolean ret = false;
 
-    if(this->prevTime_u32 + MQTT_REPORT_INTERVAL < millis() || this->prevTime_u32 == 0)
+    if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
     {      
         // the temperature and humidity publication is time interval based
         if(true == this->isConnected_bol)
@@ -278,19 +264,6 @@ bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
                 ret = client->publish(build_topic(MQTT_PUB_HUMIDITY), 
                                         f2s(this->humidity_f32, 2), true);
                 p_trace->println(trace_PURE_MSG, f2s(this->humidity_f32, 2));  
-                publications_u16++;
-            }
-            if(MAX_PUBS_TILL_POWER_SAVE <= this->publications_u16)
-            {
-                this->publications_u16 = 0;
-                if(true == this->powerSaveMode_bol)
-                {
-                    p_trace->println(trace_INFO_MSG, "GoTo Power Save Mode");
-                    TurnDHTOff();
-                    // power save time in seconds
-                    ESP.deepSleep(POWER_SAVE_TIME); 
-                    delay(100);
-                }
             }
         } 
         else
@@ -379,6 +352,13 @@ void DhtSensor::TurnDHTOff()
 *//*-----------------------------------------------------------------------------------*/
 char* DhtSensor::build_topic(const char *topic) 
 {
-  sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
+  if(0 == this->dhtId_u8)
+  {
+      sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
+  }
+  else
+  {
+      sprintf(buffer_ca, "std/%s%s%d", this->dev_p, topic, this->dhtId_u8);  
+  }
   return buffer_ca;
 }

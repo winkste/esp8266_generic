@@ -57,7 +57,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *//*-----------------------------------------------------------------------------------*/
 EspGpio::EspGpio(Trace *p_trace) : GpioDevice(p_trace)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of MCPDevice called");
+    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
     this->Initialize();
     this->PinMode();
@@ -73,7 +73,7 @@ EspGpio::EspGpio(Trace *p_trace) : GpioDevice(p_trace)
 *//*-----------------------------------------------------------------------------------*/
 EspGpio::EspGpio(Trace *p_trace, uint8_t pin_u8) : GpioDevice(p_trace, pin_u8)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of MCPDevice called");
+    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
     this->Initialize();
     this->PinMode();
@@ -91,7 +91,7 @@ EspGpio::EspGpio(Trace *p_trace, uint8_t pin_u8) : GpioDevice(p_trace, pin_u8)
 *//*-----------------------------------------------------------------------------------*/
 EspGpio::EspGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8) : GpioDevice(p_trace, pin_u8, dir_u8)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of MCPDevice called");
+    this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
     this->Initialize();
     this->PinMode();
@@ -132,7 +132,7 @@ void EspGpio::PinMode(uint8_t dir_u8)
 *//*-----------------------------------------------------------------------------------*/
 void EspGpio::DigitalWrite(uint8_t state_u8)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalWrite of MCPDevice called");
+    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalWrite of ESPDevice called");
     this->stat_u8 = state_u8;
     digitalWrite(this->pin_u8, this->stat_u8);
     this->PrintPinStat();
@@ -147,7 +147,7 @@ void EspGpio::DigitalWrite(uint8_t state_u8)
 *//*-----------------------------------------------------------------------------------*/
 uint8_t EspGpio::DigitalRead()
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalRead of MCPDevice called");
+    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalRead of ESPDevice called");
     digitalRead(this->pin_u8);
     this->PrintPinStat();
     return(this->stat_u8);

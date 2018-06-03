@@ -63,13 +63,12 @@ class Bme280Sensor : public MqttDevice
         float               altitude_f32        = 40.00;
         float               pressure_f32        = 1000.00;
         uint32_t            prevTime_u32        = 0;
-        uint16_t            publications_u16    = 0;
 
         /********************************************************************************/
         /* Public function definitions: */
-        /*Bme280Sensor(Trace *p_trace);
-        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol);*/
-        Bme280Sensor(Trace *p_trace, bool powerSaveMode_bol, GpioDevice  *bmePwr_p, GpioDevice  *bmeStat_p);
+        Bme280Sensor(Trace *p_trace, GpioDevice  *bmePwr_p, GpioDevice  *bmeStat_p);
+        Bme280Sensor(Trace *p_trace, GpioDevice  *bmePwr_p, GpioDevice  *bmeStat_p, 
+                                  uint16_t reportCycleSec_u16);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -82,9 +81,9 @@ class Bme280Sensor : public MqttDevice
         /* Private data definitions */
         uint32_t    publishData_u32;
         char        buffer_ca[100];
-        bool        powerSaveMode_bol;
         GpioDevice  *bmePwr_p;
         GpioDevice  *bmeStat_p;
+        uint32_t    reportCycleMSec_u32;
 
         /********************************************************************************/
         /* Private function definitions: */

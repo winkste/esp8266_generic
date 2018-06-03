@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        DhtSensor.h
+* FILENAME :        PowerSave.h
 *
 * DESCRIPTION :
-*       Class header for DHT Sensor
+*       Class header for power saving handler
 *
 * NOTES :
 *
@@ -26,19 +26,17 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef DHTSENSOR_H_
-#define DHTSENSOR_H_
+#ifndef POWERSAVE_H_
+#define POWERSAVE_H_
 
 /****************************************************************************************/
 /* Imported header files: */
 #include <ESP8266WiFi.h>         
 #include <PubSubClient.h>
-#include <DHT.h>
 
 #include "MqttDevice.h"
 #include "Trace.h"
 #include "PubSubClient.h"
-#include "GpioDevice.h"
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -51,41 +49,35 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class DhtSensor : public MqttDevice
+class PowerSave : public MqttDevice
 {
     public:
         /********************************************************************************/
         /* Public data definitions */
-        
+
         /********************************************************************************/
         /* Public function definitions: */
-        DhtSensor(Trace *p_trace);
-        DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p);
-        DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p, 
-                      uint16_t reportCycleSec_u16);
-        DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p, 
-                        uint16_t reportCycleSec_u16, uint8_t dhtId_u8);
+        PowerSave(Trace *p_trace);
+        PowerSave(Trace *p_trace, bool powerSaveMode_bol);
+        PowerSave(Trace *p_trace, bool powerSaveMode_bol, uint16_t pwrOnTimeSec_u16, 
+                        uint16_t pwrSaveTimeSec_u16);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
         void Initialize();
         void Reconnect(PubSubClient *client_p, const char *dev_p);
         virtual
-        ~DhtSensor();
+        ~PowerSave();
     private:
         /********************************************************************************/
         /* Private data definitions */
-        uint32_t    publishData_u32;
-        char        buffer_ca[100];
-        uint8_t     dhtPin_u8;
-        GpioDevice  *pwrPin_p;
-        DHT         *dht_p; 
-        float       humidity_f32 = 0.0;
-        float       temperature_f32 = 0.0; 
-        uint32_t    prevTime_u32 = 0;
-        uint32_t    reportCycleMSec_u32;
-        uint8_t     dhtId_u8;
-
+        char buffer_ca[100];
+        bool pwrSaveMode_bol;
+        uint32_t             prevTime_u32 = 0;
+        uint32_t pwrOnTimeMSec_u32;
+        uint32_t pwrSaveTimeMSec_u32;
+        uint8_t actualState_u8;
+        uint32_t timer_u32;
         /********************************************************************************/
         /* Private function definitions: */
         char* build_topic(const char *topic);
@@ -96,10 +88,6 @@ class DhtSensor : public MqttDevice
         
         /********************************************************************************/
         /* Protected function definitions: */
-        char *f2s(float f, int p);
-        void TurnDHTOn();
-        void TurnDHTOff();
-
 };
 
-#endif /* DHTSENSOR_H_ */
+#endif /* POWERSAVE_H_ */

@@ -461,10 +461,10 @@ void loadConfig()
   trace_st.println(trace_PURE_MSG, mqttData_sts.room);
   trace_st.print(trace_INFO_MSG, "capabilities: ");   
   trace_st.print(trace_PURE_MSG, mqttData_sts.cap);
-  trace_st.println(trace_PURE_MSG, atoi(&mqttData_sts.cap[0]));
+  trace_st.println(trace_PURE_MSG, (uint8_t)atoi(&mqttData_sts.cap[0]));
   trace_st.print(trace_INFO_MSG, "channel: ");
   trace_st.print(trace_PURE_MSG, mqttData_sts.chan);
-  trace_st.println(trace_PURE_MSG, atoi(&mqttData_sts.chan[0]));
+  trace_st.println(trace_PURE_MSG, (uint8_t)atoi(&mqttData_sts.chan[0]));
 
   // generate devices according to the selected capabilities
   deviceList_pst = factory_st.GenerateDevice(atoi(&mqttData_sts.cap[0]));

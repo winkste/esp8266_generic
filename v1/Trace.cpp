@@ -288,6 +288,35 @@ void Trace::println(uint8_t type_u8, uint8_t value_u8)
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     Trace print function for uint8_t parameter w/o new line at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     value_u16       data value
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::print(uint8_t type_u8, uint16_t value_u16)
+{
+  this->prepareMsg(type_u8, String(value_u16));
+  this->printMsg();
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Trace print line function for uint8_t parameter with new line 
+ *              at the end
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     type_u8         trace message type
+ * @param     value_u16       data value
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Trace::println(uint8_t type_u8, uint16_t value_u16)
+{
+  this->prepareMsg(type_u8, String(value_u16));
+  this->printlnMsg();
+}
+
+/**---------------------------------------------------------------------------------------
  * @brief     For asynchronous data channels, this function can be used to send 
  *            queued messages to the channel at a dedicated time.
  * @author    winkste
