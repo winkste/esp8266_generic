@@ -53,6 +53,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_SONOFF_PIR           0x0Du
 #define CAPABILITY_EIGHT_RELAY_ESP      0x0Cu
 #define CAPABILITY_DOUBLE_DHT           0x0Bu
 #define CAPABILITY_BME_SENSOR           0x0Au
@@ -109,6 +110,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
+
+#define PIR_SONOFF_INPUT_PIN            WEMOS_PIN_D5
 
 #define BME_PWR_PIN                     WEMOS_PIN_D3
 #define BME_LED_PIN                     WEMOS_PIN_D4
@@ -312,6 +315,18 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             deviceList_p->add(device_p);
             device_p = new PowerSave(trace_p, true, BME_POWER_ON_TIME, BME_DEEPSLEEP_TIME);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated power save device");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_SONOFF_PIR:
+            sonoffDevice_p = new SonoffBasic(trace_p);
+            sonoffDevice_p->SetSelf(sonoffDevice_p);
+            device_p = sonoffDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated sonoff basic device");
+            deviceList_p->add(device_p);
+            pirDevice_p = new Pir(trace_p, PIR_SONOFF_INPUT_PIN);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
             deviceList_p->add(device_p);
             break;
         default:
