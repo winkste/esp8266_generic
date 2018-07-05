@@ -48,6 +48,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "EspGpio.h"
 #include "Bme280Sensor.h"
 #include "PowerSave.h"
+#include "Sen0193.h"
 
 /****************************************************************************************/
 /* Local constant defines */
@@ -268,6 +269,9 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, DHT_R8_IN_PWR_PIN, OUTPUT);
             device_p = new DhtSensor(trace_p, DHT_R8_IN_DATA_PIN, gpio_p, DHT_R8_REPORT_CYCLE_TIME, 1);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated inside dht device");
+            deviceList_p->add(device_p);
+            device_p = new Sen0193(trace_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated moisture sensor 0193 device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_EIGHT_RELAY_ESP:
