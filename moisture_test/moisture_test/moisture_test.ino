@@ -19,11 +19,34 @@ void setup()
 void loop() 
 {
   int val;
+  float moist_f = 0.0f;
   digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
                                     // but actually the LED is on; this is because 
                                     // it is acive low on the ESP-01)
-  val = analogRead(0);              //connect sensor to Analog 0                  
-  Serial.println(val);              // print the value to serial port                               
+  val = analogRead(0);              //connect sensor to Analog 0  
+  Serial.print("Raw Data Value: ");                
+  Serial.println(val);              // print the value to serial port 
+  Serial.print("Level of moisture: ");
+  if(val < 300)
+  {
+    Serial.println("defect?");
+  }
+  else if(val < 500)
+  {
+    Serial.println("very wet"); 
+  }          
+  else if(val < 650)
+  {
+    Serial.println("wet"); 
+  }                    
+  else
+  {
+    Serial.println("dry");
+  }
+  Serial.print("Moisture in %: ");
+  moist_f = 100.0 - (((val - 450.0)/(860.0f - 450.0f))*100.0f);
+  Serial.println(moist_f);
+  
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
   delay(1000);                      // Wait for two seconds (to demonstrate the active low LED)
 }
