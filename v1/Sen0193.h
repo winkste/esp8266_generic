@@ -90,9 +90,9 @@ class Sen0193 : public MqttDevice
         uint8_t     mode_u8;
         const uint16_t zeroValueRawData_u16c    = 400;
         const uint16_t maxValueRawData_u16c     = 900;
-        const uint16_t lowLevel_u16c            = 450;
+        const uint16_t lowLevel_u16c            = 800;
         const uint16_t medLevel_u16c            = 600;
-        const uint16_t highLevel_u16c           = 800;
+        const uint16_t highLevel_u16c           = 500;
 
         /********************************************************************************/
         /* Private function definitions: */
