@@ -83,16 +83,22 @@ class Sen0193 : public MqttDevice
         GpioDevice *pwrPin_p;
         float       moisture_f32; 
         uint8_t     level_u8;
+        const char        *level_chrp;
         uint16_t    rawData_u16;
         uint32_t    prevTime_u32;
         uint32_t    reportCycleMSec_u32;
         uint8_t     moistureId_u8;
         uint8_t     mode_u8;
-        const uint16_t zeroValueRawData_u16c    = 400;
-        const uint16_t maxValueRawData_u16c     = 900;
-        const uint16_t lowLevel_u16c            = 450;
-        const uint16_t medLevel_u16c            = 600;
-        const uint16_t highLevel_u16c           = 800;
+        const char        *status_chrp;
+        const char  *MQTT_PUB_PAY_STATUS_OK     = "OK";
+        const char  *MQTT_PUB_PAY_STATUS_ERR    = "ERR";
+        const char  *MQTT_PUB_PAY_LEVEL_LOW     = "LOW";
+        const char  *MQTT_PUB_PAY_LEVEL_MED     = "MED";
+        const char  *MQTT_PUB_PAY_LEVEL_HIGH    = "HIGH";
+        const uint16_t zeroValueRawData_u16c    = 450;
+        const uint16_t maxValueRawData_u16c     = 860;
+        const uint16_t medLevel_u16c            = 650;
+        const uint16_t highLevel_u16c           = 500;
 
         /********************************************************************************/
         /* Private function definitions: */

@@ -49,8 +49,14 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #define MQTT_PUB_MOISTURE         "/s/sen0193/moisture" // moisture data
 #define MQTT_PUB_LEVEL            "/s/sen0193/level" // moisture level data
-#define MQTT_PUB_BATTERY          "/s/temp_hum/bat" // battery capacity data
+#define MQTT_PUB_STATUS           "/s/temp_hum/stat" // status of sensor
 #define MQTT_REPORT_INTERVAL      (30l * MILLISEC_IN_SEC) // 30 seconds between reports
+/*#define MQTT_PUB_PAY_STATUS_OK    "OK"
+#define MQTT_PUB_PAY_STATUS_ERR   "ERR"
+#define MQTT_PUB_PAY_LEVEL_LOW    "LOW"
+#define MQTT_PUB_PAY_LEVEL_MED    "MED"
+#define MQTT_PUB_PAY_LEVEL_HIGH   "HIGH"*/
+
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -77,9 +83,11 @@ Sen0193::Sen0193(Trace *p_trace) : MqttDevice(p_trace)
     this->medMoistPin_p         = NULL;
     this->moisture_f32          = 0.0F;
     this->level_u8              = 0U;
+    this->level_chrp            = MQTT_PUB_PAY_LEVEL_LOW;
     this->rawData_u16           = 0U;
     this->moistureId_u8         = 0U;
     this->mode_u8               = 0U;
+    this->status_chrp           = MQTT_PUB_PAY_STATUS_ERR;
     this->reportCycleMSec_u32   = MQTT_REPORT_INTERVAL;
     this->mode_u8               = 0;
 }
@@ -236,8 +244,15 @@ bool Sen0193::ProcessPublishRequests(PubSubClient *client)
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_LEVEL);
                 p_trace->print(trace_PURE_MSG, "  :  ");
                 ret = client->publish(build_topic(MQTT_PUB_LEVEL), 
-                                        f2s((float)this->level_u8, 2), true);
-                p_trace->println(trace_PURE_MSG, f2s(this->level_u8, 2));  
+                                        this->level_chrp, true);
+                p_trace->println(trace_PURE_MSG, this->level_chrp);  
+
+                p_trace->print(trace_INFO_MSG, "<<sen0193>> publish status: ");
+                p_trace->print(trace_PURE_MSG, MQTT_PUB_STATUS);
+                p_trace->print(trace_PURE_MSG, "  :  ");
+                ret = client->publish(build_topic(MQTT_PUB_STATUS), 
+                                        this->status_chrp, true);
+                p_trace->println(trace_PURE_MSG, this->level_chrp);
             }
         } 
         else
@@ -345,9 +360,11 @@ void Sen0193::ReadData(void)
     // power sensor device (warm up needs to be handled in the power up function)
     this->PowerOn();
     // read the internal ADC
-    rawData_u16 = analogRead(DEFAULT_DATAPIN);
+    this->rawData_u16 = analogRead(DEFAULT_DATAPIN);
     // power down the sensor
     this->PowerOff();
+    p_trace->print(trace_INFO_MSG, "<<sen0193>> raw data: ");
+    p_trace->println(trace_PURE_MSG, this->rawData_u16);
 }
 
 /**--------------------------------------------------------------------------------------
@@ -358,23 +375,52 @@ void Sen0193::ReadData(void)
 *//*-----------------------------------------------------------------------------------*/
 void Sen0193::ProcessMoisture(void) 
 {
-    // calculate moisture in % based on min (dry) and max (wet) range
-    moisture_f32 = ((float)(this->rawData_u16 - this->zeroValueRawData_u16c) / 
-                            this->maxValueRawData_u16c) * 100.0F;
-
-    // calculate moisture level for dry/low = 0, med wet = 1 and wet = 2
-    if(this->rawData_u16 <= this->lowLevel_u16c)
+    if(this->rawData_u16 > this->maxValueRawData_u16c)
     {
+        this->moisture_f32 = 0.0f;
         this->level_u8 = 0U;
+        this->status_chrp = MQTT_PUB_PAY_STATUS_ERR;       
     }
-    else if((this->rawData_u16 > this->medLevel_u16c) && 
-                (this->rawData_u16 <= this->highLevel_u16c))
+    else if(this->rawData_u16 < this->zeroValueRawData_u16c)
     {
-        this->level_u8 = 1U;
+        this->moisture_f32 = 100.0f;
+        this->level_u8 = 2U;
+        this->status_chrp = MQTT_PUB_PAY_STATUS_ERR;
     }
     else
     {
-        this->level_u8 = 2U;
+        this->status_chrp = MQTT_PUB_PAY_STATUS_OK;
+
+        
+        
+        // calculate moisture in % based on min (dry) and max (wet) range
+        this->moisture_f32 = (this->rawData_u16 - this->zeroValueRawData_u16c);
+        this->moisture_f32 = this->moisture_f32 / (this->maxValueRawData_u16c - this->zeroValueRawData_u16c);
+        this->moisture_f32 = this->moisture_f32 * 100.0F;
+        this->moisture_f32 = 100.0F - this->moisture_f32;
+
+        p_trace->print(trace_INFO_MSG, "<<sen0193>> moisture processed: ");
+        p_trace->println(trace_PURE_MSG, (uint16_t)(this->moisture_f32));
+    
+        // calculate moisture level for dry/low = 0, med wet = 1 and wet = 2
+        if(this->rawData_u16 < this->highLevel_u16c)  // 500
+        {
+            this->level_u8 = 2U;
+            this->level_chrp = MQTT_PUB_PAY_LEVEL_HIGH;
+            p_trace->println(trace_INFO_MSG, "<<sen0193>> moisture level high");
+        }     
+        else if(this->rawData_u16 < this->medLevel_u16c)  // 650
+        {
+            this->level_u8 = 1U;
+            this->level_chrp = MQTT_PUB_PAY_LEVEL_MED;
+            p_trace->println(trace_INFO_MSG, "<<sen0193>> moisture level medium");
+        }
+        else
+        {
+            this->level_u8 = 0U;
+            this->level_chrp = MQTT_PUB_PAY_LEVEL_LOW;
+            p_trace->println(trace_INFO_MSG, "<<sen0193>> moisture level low");
+        }    
     }
 }
 
