@@ -76,11 +76,10 @@ Temt6000::Temt6000(Trace *p_trace) : MqttDevice(p_trace)
     this->pwrPin_p              = NULL;
     this->brightPin_p           = NULL;
     this->level_u8              = 0U;
-    this->lastLevel_u8          = 1U
+    this->lastLevel_u8          = 1U;
     this->lastBrightness_f32    = 999.0F;
     this->rawData_u16           = 0U;
-    this->lastData_u16          = 0U;
-    this->brightness_f32        = 0.0F
+    this->brightness_f32        = 0.0F;
     this->brightId_u8           = 0U;
     this->reportCycleMSec_u32   = MQTT_REPORT_INTERVAL;
 }
@@ -104,7 +103,7 @@ Temt6000::Temt6000(Trace *p_trace, GpioDevice *pwrPin_p) : Temt6000(p_trace)
  * @date        04 Jul. 2018
  * @param[in]   p_trace         trace object for info and error messages
  * @param[in]   pwrPin_p        handle to power pin of gen tyype GpioDevice
- * @param[in]   brightPin_p     toggle pin for low moisture detection
+ * @param[in]   brightPin_p     toggle pin for darkness / brightness detection
  * @param[in]   brightId_u8     sensor id if more than one are used in a device
  * @return      n/a
 *//*-----------------------------------------------------------------------------------*/
@@ -200,7 +199,6 @@ bool Temt6000::ProcessPublishRequests(PubSubClient *client)
 
     if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
     {      
-        // the moisture and moisture level publication is time interval based
         if(true == this->isConnected_bol)
         {
             p_trace->println(trace_INFO_MSG, "<<temt6000>> processes publish request");
@@ -238,7 +236,6 @@ bool Temt6000::ProcessPublishRequests(PubSubClient *client)
                     "<<temt6000>> connection failure in dht ProcessPublishRequests "); 
         }
     }
-
     return ret;  
 }
 
@@ -255,7 +252,7 @@ bool Temt6000::ProcessPublishRequests(PubSubClient *client)
 *//*-----------------------------------------------------------------------------------*/
 char* Temt6000::build_topic(const char *topic) 
 {
-  if(0 == this->moistureId_u8)
+  if(0 == this->brightId_u8)
   {
       sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
   }

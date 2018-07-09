@@ -49,11 +49,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Bme280Sensor.h"
 #include "PowerSave.h"
 #include "Sen0193.h"
+#include "Temt6000.h"
 
 /****************************************************************************************/
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_MULTI_SENSE          0x0Fu
 #define CAPABILITY_MOISTURE_ONLY        0x0Eu
 #define CAPABILITY_SONOFF_PIR           0x0Du
 #define CAPABILITY_EIGHT_RELAY_ESP      0x0Cu
@@ -112,6 +114,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
+
+#define MS_PIR_INPUT_PIN                WEMOS_PIN_D3
+#define MS_DHT_OUT_DATA_PIN             WEMOS_PIN_D5
+#define MS_DHT_OUT_PWR_PIN              WEMOS_PIN_D7
+#define MS_TEMT6000_OUT_PWR_PIN         WEMOS_PIN_D8
+#define MS_DHT_REPORT_CYCLE_TIME        30u
+ 
 
 #define PIR_SONOFF_INPUT_PIN            WEMOS_PIN_D5
 
@@ -337,6 +346,21 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
         case CAPABILITY_MOISTURE_ONLY:
             device_p = new Sen0193(trace_p);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated moisture sensor 0193 device");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_MULTI_SENSE:
+            gpio_p   = new EspGpio(trace_p, MS_DHT_OUT_PWR_PIN, OUTPUT);
+            device_p = new DhtSensor(trace_p, MS_DHT_OUT_DATA_PIN, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            deviceList_p->add(device_p);
+            pirDevice_p = new Pir(trace_p, MS_PIR_INPUT_PIN);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, MS_DHT_OUT_PWR_PIN, OUTPUT);
+            device_p = new Temt6000(trace_p, gpio_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated temt6000 device");
             deviceList_p->add(device_p);
             break;
         default:

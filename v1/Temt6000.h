@@ -80,9 +80,9 @@ class Temt6000 : public MqttDevice
         GpioDevice      *pwrPin_p;
         uint8_t         level_u8;
         uint8_t         lastLevel_u8;
-        float32_t       lastBrightness_f32;
+        float           lastBrightness_f32;
         uint16_t        rawData_u16;
-        float32_t       brightness_f32;
+        float           brightness_f32;
         uint32_t        prevTime_u32;
         uint32_t        reportCycleMSec_u32;
         uint8_t         brightId_u8;
@@ -101,10 +101,7 @@ class Temt6000 : public MqttDevice
         void PowerOn();
         void PowerOff();
         void ReadData();
-        void ProcessMoisture(void);
-        void SetMoistureLevelPins();
-
-
+        void ProcessBrightness(void);
 };
 /****************************************************************************************/
 #endif /* TEMT6000_H_ */
