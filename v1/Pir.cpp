@@ -138,8 +138,8 @@ void Pir::Initialize()
 {
     p_trace->println(trace_INFO_MSG, "<<pir>>Pir initialized");
 
-    pinMode(this->pirPin_u8, INPUT);
-    digitalWrite(this->pirPin_u8, HIGH); // pull up to avoid interrupts without sensor
+    pinMode(this->pirPin_u8, INPUT_PULLUP);
+    //digitalWrite(this->pirPin_u8, HIGH); // pull up to avoid interrupts without sensor
     attachInterrupt(digitalPinToInterrupt(this->pirPin_u8), 
                                             Pir::UpdatePirState, CHANGE);
     if(0xff != this->ledPin_u8)

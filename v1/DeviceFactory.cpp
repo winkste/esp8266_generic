@@ -115,8 +115,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define PIR_INPUT_PIN                   WEMOS_PIN_D3
 #define PIR_LED_PIN                     WEMOS_PIN_D4
 
-#define MS_PIR_INPUT_PIN                WEMOS_PIN_D3
-#define MS_DHT_OUT_DATA_PIN             WEMOS_PIN_D5
+#define MS_PIR_INPUT_PIN                WEMOS_PIN_D5
+#define MS_DHT_OUT_DATA_PIN             WEMOS_PIN_D3
 #define MS_DHT_OUT_PWR_PIN              WEMOS_PIN_D7
 #define MS_TEMT6000_OUT_PWR_PIN         WEMOS_PIN_D8
 #define MS_DHT_REPORT_CYCLE_TIME        30u
@@ -358,7 +358,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             device_p = pirDevice_p;
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
             deviceList_p->add(device_p);
-            gpio_p   = new EspGpio(trace_p, MS_DHT_OUT_PWR_PIN, OUTPUT);
+            gpio_p   = new EspGpio(trace_p, MS_TEMT6000_OUT_PWR_PIN, OUTPUT);
             device_p = new Temt6000(trace_p, gpio_p);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated temt6000 device");
             deviceList_p->add(device_p);

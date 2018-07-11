@@ -52,8 +52,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #define MQTT_PUB_BRIGHTNESS       "/s/temt6000/raw" // raw sensor data in digits
 #define MQTT_PUB_BRIGHT_LEVEL     "/s/temt6000/level" // brightness level data
-#define MQTT_REPORT_INTERVAL      (1l * MILLISEC_IN_SEC) // 1 second between processing
-#define MQTT_THRESHOLD            50.0F
+#define MQTT_REPORT_INTERVAL      (2l * MILLISEC_IN_SEC) // 1 second between processing
+#define MQTT_THRESHOLD            25.0F
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -136,7 +136,10 @@ void Temt6000::Initialize()
 {
     p_trace->println(trace_INFO_MSG, "<<temt6000>> initialize");
     this->PowerOff();
-    this->brightPin_p->DigitalWrite(LOW);   
+    if(NULL != this->brightPin_p)
+    {
+        this->brightPin_p->DigitalWrite(LOW);   
+    }
     this->isInitialized_bol = true;
 }
 
@@ -335,6 +338,8 @@ void Temt6000::ReadData(void)
     this->PowerOn();
     // read the internal ADC
     this->rawData_u16 = analogRead(DEFAULT_DATAPIN);
+    p_trace->print(trace_INFO_MSG, "<<temt6000>> read sensor data: ");
+                p_trace->println(trace_PURE_MSG, this->rawData_u16);
 
     // power down the sensor
     this->PowerOff();
