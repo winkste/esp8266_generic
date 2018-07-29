@@ -79,6 +79,7 @@ class Temt6000 : public MqttDevice
         GpioDevice      *brightPin_p;
         GpioDevice      *pwrPin_p;
         uint8_t         level_u8;
+        const char      *level_chrp;
         uint8_t         lastLevel_u8;
         float           lastBrightness_f32;
         uint16_t        rawData_u16;
@@ -86,6 +87,8 @@ class Temt6000 : public MqttDevice
         uint32_t        prevTime_u32;
         uint32_t        reportCycleMSec_u32;
         uint8_t         brightId_u8;
+        const char      *MQTT_PUB_PAY_LEVEL_DARK    = "DARK";
+        const char      *MQTT_PUB_PAY_LEVEL_BRIGHT  = "BRIGHT";
 
         /********************************************************************************/
         /* Private function definitions: */

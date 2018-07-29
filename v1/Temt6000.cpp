@@ -76,6 +76,7 @@ Temt6000::Temt6000(Trace *p_trace) : MqttDevice(p_trace)
     this->pwrPin_p              = NULL;
     this->brightPin_p           = NULL;
     this->level_u8              = 0U;
+    this->level_chrp            = MQTT_PUB_PAY_LEVEL_DARK;
     this->lastLevel_u8          = 1U;
     this->lastBrightness_f32    = 999.0F;
     this->rawData_u16           = 0U;
@@ -228,8 +229,8 @@ bool Temt6000::ProcessPublishRequests(PubSubClient *client)
                 p_trace->print(trace_PURE_MSG, MQTT_PUB_BRIGHT_LEVEL);
                 p_trace->print(trace_PURE_MSG, "  :  ");
                 ret = client->publish(build_topic(MQTT_PUB_BRIGHT_LEVEL), 
-                                        f2s((float)this->level_u8, 2), true);
-                p_trace->println(trace_PURE_MSG, f2s(this->level_u8, 2));
+                                        this->level_chrp, true);
+                p_trace->println(trace_PURE_MSG, this->level_chrp);
             } 
                    
         } 
@@ -353,13 +354,14 @@ void Temt6000::ReadData(void)
 *//*-----------------------------------------------------------------------------------*/
 void Temt6000::ProcessBrightness(void) 
 {
-    // calculate moisture in % based on min (dry) and max (wet) range
+    // calculate moisture in % based on min (dark) and max (bright) range
     this->brightness_f32 = this->rawData_u16;
 
     // calculate brightness level for dark = 0, bright = 1
     if(this->brightness_f32 <= DARK_LEVEL)
     {
         this->level_u8 = 0U;
+        this->level_chrp = MQTT_PUB_PAY_LEVEL_DARK;
         if(NULL != this->brightPin_p)
         {
             this->brightPin_p->DigitalWrite(HIGH);    
@@ -368,6 +370,7 @@ void Temt6000::ProcessBrightness(void)
     else
     {
         this->level_u8 = 1U;
+        this->level_chrp = MQTT_PUB_PAY_LEVEL_BRIGHT;
         if(NULL != this->brightPin_p)
         {
             this->brightPin_p->DigitalWrite(LOW);    
