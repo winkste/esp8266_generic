@@ -67,6 +67,7 @@ class Pir : public MqttDevice
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
         void Initialize();
         void Reconnect(PubSubClient *client_p, const char *dev_p);
+        void VerifyPirState(void);
         void ToggleRelay(void);
         static void UpdatePirState();
         static void SetSelf(Pir *mySelf_p);

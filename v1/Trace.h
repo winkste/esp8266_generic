@@ -131,3 +131,4 @@ class Trace
 };
 
 #endif /* TRACE_H_ */
+

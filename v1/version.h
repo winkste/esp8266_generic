@@ -61,7 +61,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 *                                 sensors, this is now handled by the PowerSave device
 * 019       09.06         SWI     changed mcp 8 reley to double dht, changed pins for                                 
 *                                 esp relay 8
-* 020       06.07         SWI     integrated Sen0193 capacitive moisture sensor                               
+* 020       06.07         SWI     integrated Sen0193 capacitive moisture sensor  
+* 021       02.08         SWI     add additional pir pin verification because of 
+*                                 some wired behaviour of the pir in dev03                             
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -72,7 +74,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "020"     // Firmware Version
+#define FW_VERSION                "021"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/
@@ -89,3 +91,4 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #endif /* VERSION_H */
 /****************************************************************************************/
+

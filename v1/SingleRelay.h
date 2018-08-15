@@ -95,3 +95,4 @@ class SingleRelay : public MqttDevice
 };
 
 #endif /* SINGLERELAY_H_ */
+

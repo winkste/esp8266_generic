@@ -377,3 +377,4 @@ void Temt6000::ProcessBrightness(void)
         }
     }
 }
+

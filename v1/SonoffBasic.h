@@ -95,3 +95,4 @@ class SonoffBasic : public MqttDevice
 };
 
 #endif /* SONOFFBASIC_H_ */
+
