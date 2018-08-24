@@ -107,6 +107,7 @@ static boolean              publishInfo_bolst = false;
 static boolean              publishCap_bolst = false;
 static boolean              publishTrac_bolst = false;
 static boolean              publishPar_bolst = false;
+static boolean              publishRoom_bolst = false;
 static boolean              startWifiConfig_bolst = false;
 
 /*****************************************************************************************
@@ -163,6 +164,16 @@ boolean processPublishRequests(void)
     if (ret_bol)
     {
       publishCap_bolst = false;
+    }
+  }
+  else if (true == publishRoom_bolst)
+  {
+    trace_st.print(trace_INFO_MSG, "<<gen>>publish requested room: ");
+    trace_st.println(trace_PURE_MSG, &mqttData_sts.room[0]);
+    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_TRACE), &mqttData_sts.room[0], true);
+    if (ret_bol)
+    {
+      publishRoom_bolst = false;
     }
   }
   else
@@ -222,19 +233,24 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
     // send capability setting
     else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_CAP)))
     {
-      // send capability setting
+      // send room setting
       publishCap_bolst = true;
+    }
+    else if(0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_ROOM)))
+    {
+      // send trace setting
+      publishRoom_bolst = true;
     }
     // send trace channel setting
     else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_TRAC)))
     {
-      // send capability setting
+      // send trace setting
       publishTrac_bolst = true;
     }
     // send parameter set
     else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_PAR)))
     {
-      // send capability setting
+      // send parameter setting
       publishPar_bolst = true;
     }
     else
