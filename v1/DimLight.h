@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        McpGpio.h
+* FILENAME :        DimLight.h
 *
 * DESCRIPTION :
-*       Class header for MCP Gpio class
+*       Class header for a dimmable light controlled via one pin 
 *
 * NOTES :
 *
@@ -26,16 +26,19 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef MCPGPIO_H_
-#define MCPGPIO_H_
+#ifndef DIMLIGHT_H_
+#define DIMLIGHT_H_
 
 /****************************************************************************************/
 /* Imported header files: */
 
-#include "GpioDevice.h"
+#include "MqttDevice.h"
 #include "Trace.h"
+#include "PubSubClient.h"
+#include "GpioDevice.h"
 
-#include "Adafruit_MCP23017.h"
+#include <ESP8266WiFi.h>         
+#include <PubSubClient.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -48,7 +51,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class McpGpio : public GpioDevice
+class DimLight : public MqttDevice
 {
     public:
         /********************************************************************************/
@@ -56,34 +59,34 @@ class McpGpio : public GpioDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        McpGpio(Trace *p_trace);
-        McpGpio(Trace *p_trace, uint8_t pin_u8);
-        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
-        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8, GpioDevice *nReset_p);
-
-        void PinMode(uint8_t dir_u8);
-        void DigitalWrite(uint8_t state_u8);
-        uint8_t DigitalRead(void);
-        void AnalogWrite(uint16_t value_u16);
-        uint16_t AnalogRead(void);
-
-        virtual ~McpGpio();
+        DimLight(Trace *p_trace, GpioDevice  *gpio_p, char* relayChan_p);
+        // virtual functions, implementation in derived classes
+        bool ProcessPublishRequests(PubSubClient *client);
+        void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
+        void Initialize();
+        void Reconnect(PubSubClient *client_p, const char *dev_p);
+        virtual
+        ~DimLight();
     private:
         /********************************************************************************/
         /* Private data definitions */ 
-        static Adafruit_MCP23017 mcp;
-        static uint8_t mcpAddr_u8;
-        static bool mcpInitialized_bol;
-        uint8_t stat_u8;
-        uint16_t    value_u16;
-        GpioDevice *nReset_p;
-
+        boolean lightState_bol      = false;
+        boolean publishState_bol    = true;
+        char buffer_ca[100];
+        char *channel_p;
+        GpioDevice *gpio_p;
+        uint8_t brightness_u8       = 20;  
+        char mqttPayload[20];    
+        
         /********************************************************************************/
         /* Private function definitions: */
-        void PrintPinStat();
-        void PinMode();
-        void Initialize();
-
+        void TurnLightOff(void);
+        void TurnLightOn(void);
+        void SetLight(void);
+        void ToggleLight(void);
+        char* BuildReceiveTopic(const char *topic);
+        char* BuildSendTopic(const char *topic);
+    protected:
         /********************************************************************************/
         /* Protected data definitions */
 
@@ -92,4 +95,5 @@ class McpGpio : public GpioDevice
 
 };
 
-#endif /* MCPGPIO_H_ */
+#endif /* SINGLERELAY_H_ */
+

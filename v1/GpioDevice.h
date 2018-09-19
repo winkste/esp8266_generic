@@ -64,6 +64,8 @@ class GpioDevice
         virtual void PinMode(uint8_t dir_u8) = 0;
         virtual void DigitalWrite(uint8_t state_u8) = 0;
         virtual uint8_t DigitalRead(void) = 0;
+        virtual void AnalogWrite(uint16_t value_u16) = 0;
+        virtual uint16_t AnalogRead(void) = 0;
         
     protected:
         /********************************************************************************/
@@ -71,6 +73,7 @@ class GpioDevice
         Trace       *p_trace;
         uint8_t     pin_u8;
         uint8_t     dir_u8;
+        uint16_t    value_u16;
 
         /********************************************************************************/
         /* Protected function definitions: */

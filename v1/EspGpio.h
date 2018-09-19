@@ -61,6 +61,9 @@ class EspGpio : public GpioDevice
         void PinMode(uint8_t dir_u8);
         void DigitalWrite(uint8_t state_u8);
         uint8_t DigitalRead(void);
+        void AnalogWrite(uint16_t value_u16);
+        uint16_t AnalogRead(void);
+
         virtual ~EspGpio();
     private:
         /********************************************************************************/

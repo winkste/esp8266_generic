@@ -266,11 +266,44 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length)
     {
       publishInfo_bolst = true;
     }
+        // send capability setting
+    else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_CAP)))
+    {
+      // send room setting
+      publishCap_bolst = true;
+    }
+    else if(0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_ROOM)))
+    {
+      // send trace setting
+      publishRoom_bolst = true;
+    }
+    // send trace channel setting
+    else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_TRAC)))
+    {
+      // send trace setting
+      publishTrac_bolst = true;
+    }
+    // send parameter set
+    else if (0 == payload.indexOf(String(MQTT_PAYLOAD_CMD_PAR)))
+    {
+      // send parameter setting
+      publishPar_bolst = true;
+    }
     else
     {
       trace_st.print(trace_ERROR_MSG, "<<gen>> unexpected command: ");
       trace_st.println(trace_PURE_MSG, payload);
     }
+  }
+  else if (String(MQTT_SUB_CAP).equals(p_topic))
+  {
+      trace_st.print(trace_INFO_MSG, "<<gen>> write capability command: ");
+      trace_st.println(trace_PURE_MSG, payload);
+  }
+  else if (String(MQTT_SUB_TRACE).equals(p_topic))
+  {
+    trace_st.print(trace_INFO_MSG, "<<gen>> write trace command: ");
+    trace_st.println(trace_PURE_MSG, payload);
   }
   else
   {
@@ -489,10 +522,9 @@ void loadConfig()
 }
 
 /**---------------------------------------------------------------------------------------
-   @brief     This function helps to build the complete topic including the
-                custom device.
+   @brief     This function helps to build the broadcast topic.
    @author    winkste
-   @date      20 Okt. 2017
+   @date      25 Aug. 2018
    @param     topic       pointer to topic string
    @return    combined topic as char pointer, it uses buffer_stca to store the topic
 *//*-----------------------------------------------------------------------------------*/
@@ -503,12 +535,11 @@ char* build_topic(const char *topic)
 }
 
 /**---------------------------------------------------------------------------------------
-   @brief     This function helps to build the complete topic including the
-                custom device.
+   @brief     This function helps to build the ssid for the wifi config portal.
    @author    winkste
    @date      20 Okt. 2017
-   @param     topic       pointer to topic string
-   @return    combined topic as char pointer, it uses buffer_stca to store the topic
+   @param     topic       pointer to ssid string
+   @return    combined ssid as char pointer, it uses buffer_stca to store the ssid
 *//*-----------------------------------------------------------------------------------*/
 char* build_ssid(const char *ssidName)
 {

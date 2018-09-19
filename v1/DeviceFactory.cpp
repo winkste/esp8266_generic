@@ -50,11 +50,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "PowerSave.h"
 #include "Sen0193.h"
 #include "Temt6000.h"
+#include "DimLight.h"
 
 /****************************************************************************************/
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_DIM_LIGHT            0x10u
 #define CAPABILITY_MULTI_SENSE          0x0Fu
 #define CAPABILITY_MOISTURE_ONLY        0x0Eu
 #define CAPABILITY_SONOFF_PIR           0x0Du
@@ -129,6 +131,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define BME_REPORT_CYCLE_TIME           5u
 #define BME_POWER_ON_TIME               5u
 #define BME_DEEPSLEEP_TIME              60u
+
+#define DIM_LIGHT_1                     WEMOS_PIN_D4
+#define MQTT_DIM_LIGHT_1                "dim_one"
 
 
 #define MQTT_CHAN_ONE                   "relay_one"
@@ -361,6 +366,12 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, MS_TEMT6000_OUT_PWR_PIN, OUTPUT);
             device_p = new Temt6000(trace_p, gpio_p);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated temt6000 device");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_DIM_LIGHT:
+            gpio_p   = new EspGpio(trace_p, DIM_LIGHT_1, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_DIM_LIGHT_1);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dim light one");
             deviceList_p->add(device_p);
             break;
         default:

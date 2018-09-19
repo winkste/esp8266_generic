@@ -59,6 +59,7 @@ EspGpio::EspGpio(Trace *p_trace) : GpioDevice(p_trace)
 {
     this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -75,6 +76,7 @@ EspGpio::EspGpio(Trace *p_trace, uint8_t pin_u8) : GpioDevice(p_trace, pin_u8)
 {
     this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 
@@ -93,6 +95,7 @@ EspGpio::EspGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8) : GpioDevice(p_
 {
     this->p_trace->println(trace_INFO_MSG, "<<espGpio>> Constructor of ESPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -135,6 +138,7 @@ void EspGpio::DigitalWrite(uint8_t state_u8)
     this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalWrite of ESPDevice called");
     this->stat_u8 = state_u8;
     digitalWrite(this->pin_u8, this->stat_u8);
+    this->value_u16 = 1023 * this->stat_u8;
     this->PrintPinStat();
 }
 
@@ -148,9 +152,39 @@ void EspGpio::DigitalWrite(uint8_t state_u8)
 uint8_t EspGpio::DigitalRead()
 {
     this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalRead of ESPDevice called");
-    digitalRead(this->pin_u8);
+    this->stat_u8 = digitalRead(this->pin_u8);
+    this->value_u16 = 1023 * this->stat_u8;
     this->PrintPinStat();
     return(this->stat_u8);
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Function call to set output pin to dedicated analog value
+ * @author    winkste
+ * @date      12 Sep. 2018
+ * @param     value_u16  analog value (0-1023)
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void EspGpio::AnalogWrite(uint16_t value_u16)
+{
+    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogWrite of ESPDevice called");
+    this->value_u16 = value_u16;
+    analogWrite(this->pin_u8, value_u16);
+    this->PrintPinStat();
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Function call to get analog output pin value
+ * @author    winkste
+ * @date      12. Sep. 2018
+ * @return    analog value (0-1023)
+*//*-----------------------------------------------------------------------------------*/
+uint16_t EspGpio::AnalogRead()
+{
+    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogRead of ESPDevice called");
+    this->value_u16 = analogRead(this->pin_u8);
+    this->PrintPinStat();
+    return(this->value_u16);
 }
 
 /****************************************************************************************/
@@ -168,7 +202,9 @@ void EspGpio::PrintPinStat()
     this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->print(trace_PURE_MSG, this->dir_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
-    this->p_trace->println(trace_PURE_MSG, this->stat_u8);
+    this->p_trace->print(trace_PURE_MSG, this->stat_u8);
+    this->p_trace->print(trace_PURE_MSG, " / ");
+    this->p_trace->println(trace_PURE_MSG, this->value_u16);
 }
 
 /**---------------------------------------------------------------------------------------

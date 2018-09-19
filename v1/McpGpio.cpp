@@ -65,6 +65,7 @@ McpGpio::McpGpio(Trace *p_trace) : GpioDevice(p_trace)
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpGpio>> Constructor of MCPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -81,6 +82,7 @@ McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8) : GpioDevice(p_trace, pin_u8)
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpGpio>> Constructor of MCPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -98,6 +100,7 @@ McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8) : GpioDevice(p_
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpGpio>> Constructor of MCPDevice called");
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -116,6 +119,7 @@ McpGpio::McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8, GpioDevice *nRe
     this->p_trace->println(trace_INFO_MSG, "<<mcpGpio>> Constructor of MCPDevice called");
     this->nReset_p = nReset_p;
     this->stat_u8 = 0;
+    this->value_u16 = 0;
     this->Initialize();
     this->PinMode();
 }
@@ -158,6 +162,7 @@ void McpGpio::DigitalWrite(uint8_t state_u8)
     this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> digitalWrite of MCPDevice called");
     this->stat_u8 = state_u8;
     this->mcp.digitalWrite(this->pin_u8, this->stat_u8);
+    this->value_u16 = 1023 * this->stat_u8;
     this->PrintPinStat();
 }
 
@@ -171,9 +176,51 @@ void McpGpio::DigitalWrite(uint8_t state_u8)
 uint8_t McpGpio::DigitalRead()
 {
     this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> digitalRead of MCPDevice called");
-    this->PrintPinStat();
     this->stat_u8 = this->mcp.digitalRead(this->pin_u8);
+    this->value_u16 = 1023 * this->stat_u8;
+    this->PrintPinStat();
     return(this->stat_u8);
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Function call to set output pin to dedicated analog value
+ * @author    winkste
+ * @date      12 Sep. 2018
+ * @param     value_u16  analog value (0-1023)
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void McpGpio::AnalogWrite(uint16_t value_u16)
+{
+    this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> analogWrite of MCPDevice called");
+    // convert analog value to digital expression
+    if(value_u16 > 512)
+    {
+        this->value_u16 = 1023;
+        this->stat_u8 = HIGH;
+    }
+    else
+    {
+        this->value_u16 = 0;
+        this->stat_u8 = LOW;    
+    }
+
+    this->mcp.digitalWrite(this->pin_u8, this->stat_u8);
+    this->PrintPinStat();
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Function call to get analog output pin value
+ * @author    winkste
+ * @date      12. Sep. 2018
+ * @return    analog value (0-1023)
+*//*-----------------------------------------------------------------------------------*/
+uint16_t McpGpio::AnalogRead()
+{
+    this->p_trace->println(trace_INFO_MSG, "<<mcpgpio>> analogRead of ESPDevice called");
+    this->stat_u8 = this->mcp.digitalRead(this->pin_u8);
+    this->value_u16 = 1023 * this->stat_u8;
+    this->PrintPinStat();
+    return(this->value_u16);
 }
 
 /****************************************************************************************/
@@ -192,6 +239,8 @@ void McpGpio::PrintPinStat()
     this->p_trace->print(trace_PURE_MSG, this->dir_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->println(trace_PURE_MSG, this->stat_u8);
+    this->p_trace->print(trace_PURE_MSG, " / ");
+    this->p_trace->print(trace_PURE_MSG, this->value_u16);
 }
 
 /**---------------------------------------------------------------------------------------

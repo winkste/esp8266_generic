@@ -1,8 +1,8 @@
 /*****************************************************************************************
-* FILENAME :        McpGpio.h
+* FILENAME :        Utils.h
 *
 * DESCRIPTION :
-*       Class header for MCP Gpio class
+*       Class header for utility methods
 *
 * NOTES :
 *
@@ -26,16 +26,14 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *****************************************************************************************/
-#ifndef MCPGPIO_H_
-#define MCPGPIO_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 /****************************************************************************************/
 /* Imported header files: */
 
-#include "GpioDevice.h"
-#include "Trace.h"
-
-#include "Adafruit_MCP23017.h"
+#include <ESP8266WiFi.h>         
+#include <PubSubClient.h>
 
 /****************************************************************************************/
 /* Global constant defines: */
@@ -48,7 +46,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Class definition: */
-class McpGpio : public GpioDevice
+class Utils
 {
     public:
         /********************************************************************************/
@@ -56,34 +54,25 @@ class McpGpio : public GpioDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        McpGpio(Trace *p_trace);
-        McpGpio(Trace *p_trace, uint8_t pin_u8);
-        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
-        McpGpio(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8, GpioDevice *nReset_p);
-
-        void PinMode(uint8_t dir_u8);
-        void DigitalWrite(uint8_t state_u8);
-        uint8_t DigitalRead(void);
-        void AnalogWrite(uint16_t value_u16);
-        uint16_t AnalogRead(void);
-
-        virtual ~McpGpio();
+        Utils();
+        static char* FloatToString(float f, int p, char* pBuffer);
+        static char* IntegerToDecString(uint32_t i, char* pBuffer);
+        static char* BuildSendTopic(const char *dev_p, const char *channel_p, 
+                                      const char *topic_p, char *buffer_p);
+        static char* BuildSendTopic(const char *dev_p, 
+                                      const char *topic_p, char *buffer_p);  
+        static char* BuildReceiveTopic(const char *dev_p, const char *channel_p, 
+                                      const char *topic_p, char *buffer_p); 
+        virtual
+        ~Utils();
     private:
         /********************************************************************************/
-        /* Private data definitions */ 
-        static Adafruit_MCP23017 mcp;
-        static uint8_t mcpAddr_u8;
-        static bool mcpInitialized_bol;
-        uint8_t stat_u8;
-        uint16_t    value_u16;
-        GpioDevice *nReset_p;
-
+        /* Private data definitions */      
+        
         /********************************************************************************/
         /* Private function definitions: */
-        void PrintPinStat();
-        void PinMode();
-        void Initialize();
 
+    protected:
         /********************************************************************************/
         /* Protected data definitions */
 
@@ -92,4 +81,5 @@ class McpGpio : public GpioDevice
 
 };
 
-#endif /* MCPGPIO_H_ */
+#endif /* UTILS_H_ */
+
