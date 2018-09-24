@@ -72,6 +72,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p, 
                                 char* lightChan_p) : MqttDevice(p_trace)
 {
+    this->deviceName_ccp    = DEVICE_NAME;
     this->prevTime_u32      = 0;
     this->publications_u16  = 0;
     this->lightState_bol    = false;
@@ -101,7 +102,8 @@ DimLight::~DimLight()
 void DimLight::Initialize()
 {
     this->isInitialized_bol = true;
-    p_trace->println(trace_INFO_MSG, "<<dimLight>> initialized");
+    p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+    p_trace->println(trace_PURE_MSG, " initialized");
     this->TurnLightOff();
 }
 
@@ -119,30 +121,21 @@ void DimLight::Reconnect(PubSubClient *client_p, const char *dev_p)
     {
         this->dev_p = dev_p;
         this->isConnected_bol = true;
-        p_trace->println(trace_INFO_MSG, "<<dimLight>> reconnected");
+        p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, " reconnected");
         // ... and resubscribe
         // toggle light 
-        client_p->subscribe(BuildReceiveTopic(MQTT_SUB_TOGGLE));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<dimLight>> subscribed 1: ");
-        p_trace->println(trace_PURE_MSG, BuildReceiveTopic(MQTT_SUB_TOGGLE));
+        this->Subscribe(client_p, MQTT_SUB_TOGGLE);
         // change light state digital with payload
-        client_p->subscribe(BuildReceiveTopic(MQTT_SUB_SWITCH));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<dimLight>> subscribed 2: ");
-        p_trace->println(trace_PURE_MSG, BuildReceiveTopic(MQTT_SUB_SWITCH));
+        this->Subscribe(client_p, MQTT_SUB_SWITCH);  
         // command to set brightness of light 
-        client_p->subscribe(BuildReceiveTopic(MQTT_SUB_BRIGHTNESS));  
-        client_p->loop();
-        p_trace->print(trace_INFO_MSG, "<<dimLight>> subscribed 3: ");
-        p_trace->println(trace_PURE_MSG, BuildReceiveTopic(MQTT_SUB_TOGGLE));
-        client_p->loop();
+        this->Subscribe(client_p, MQTT_SUB_BRIGHTNESS); 
     }
     else
     {
         // failure, not connected
-        p_trace->println(trace_ERROR_MSG, 
-                    "<<dimLight>> uninizialized MQTT client detected");
+        p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, " uninizialized MQTT client detected");
         this->isConnected_bol = false;
     }
 }
@@ -163,14 +156,16 @@ void DimLight::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payloa
         // received toggle light mqtt topic
         if (String(BuildReceiveTopic(MQTT_SUB_TOGGLE)).equals(p_topic)) 
         {
-            p_trace->print(trace_INFO_MSG, "<<dimLight>> mqtt callback: ");
+            p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+            p_trace->print(trace_PURE_MSG, "<<dimLight>> mqtt callback: ");
             p_trace->println(trace_PURE_MSG, p_topic);
             this->ToggleLight();
         }
         // execute command to switch on/off the light
         else if (String(BuildReceiveTopic(MQTT_SUB_SWITCH)).equals(p_topic)) 
         {
-            p_trace->print(trace_INFO_MSG, "<<dimLight>>mqtt callback: ");
+            p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+            p_trace->println(trace_PURE_MSG, " mqtt callback: ");
             p_trace->print(trace_PURE_MSG, p_topic);
             p_trace->print(trace_PURE_MSG, " : ");
             p_trace->println(trace_PURE_MSG, p_payload);
@@ -187,14 +182,16 @@ void DimLight::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payloa
             }
             else
             {
-                p_trace->print(trace_ERROR_MSG, "<<dimLight>> unexpected payload: "); 
+                p_trace->print(trace_ERROR_MSG, this->deviceName_ccp);
+                p_trace->println(trace_PURE_MSG, " unexpected payload: "); 
                 p_trace->println(trace_PURE_MSG, p_payload);
             }   
         } 
                 // execute command to change brightness of light
         else if (String(BuildReceiveTopic(MQTT_SUB_BRIGHTNESS)).equals(p_topic)) 
         {
-            p_trace->print(trace_INFO_MSG, "<<dimLight>> mqtt callback: ");
+            p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+            p_trace->println(trace_PURE_MSG, " mqtt callback: ");
             p_trace->print(trace_PURE_MSG, p_topic);
             p_trace->print(trace_PURE_MSG, " : ");
             p_trace->println(trace_PURE_MSG, p_payload);
@@ -208,15 +205,16 @@ void DimLight::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payloa
             }
             else
             {
-                p_trace->print(trace_ERROR_MSG, "<<dimLight>> unexpected payload: "); 
+                p_trace->print(trace_ERROR_MSG, this->deviceName_ccp);
+                p_trace->println(trace_PURE_MSG, " unexpected payload: "); 
                 p_trace->println(trace_PURE_MSG, p_payload);
             }   
         } 
     }
     else
     {
-        p_trace->println(trace_ERROR_MSG, 
-                                    "<<dimLight>>connection failure in CallbackMqtt "); 
+        p_trace->print(trace_ERROR_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, "connection failure in CallbackMqtt "); 
     }
 }
 
@@ -237,31 +235,18 @@ bool DimLight::ProcessPublishRequests(PubSubClient *client)
         // check if state has changed, than publish this state
         if(true == publishState_bol)
         {
-            p_trace->print(trace_INFO_MSG, "<<dimLight>> publish requested state: ");
-            p_trace->print(trace_PURE_MSG, BuildSendTopic(MQTT_PUB_LIGHT_STATE));
-            p_trace->print(trace_PURE_MSG, "  :  ");
             if(true == this->lightState_bol)
             {
-              ret = client->publish(BuildSendTopic(MQTT_PUB_LIGHT_STATE), 
-                                        MQTT_PAYLOAD_CMD_ON, true);
-              p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_ON);
+              ret = PublishMessage(client, MQTT_PUB_LIGHT_STATE, MQTT_PAYLOAD_CMD_ON);
             }
             else
             {
-                ret = client->publish(BuildSendTopic(MQTT_PUB_LIGHT_STATE), 
-                                          MQTT_PAYLOAD_CMD_OFF, true); 
-                p_trace->println(trace_PURE_MSG, MQTT_PAYLOAD_CMD_OFF); 
+              ret = PublishMessage(client, MQTT_PUB_LIGHT_STATE, MQTT_PAYLOAD_CMD_OFF); 
             } 
 
-            p_trace->print(trace_INFO_MSG, "<<dimLight>> publish requested brightness: ");
-            p_trace->print(trace_PURE_MSG, BuildSendTopic(MQTT_PUB_BRIGHTNESS));
-            p_trace->print(trace_PURE_MSG, "  :  ");
-            ret = client->publish(BuildSendTopic(MQTT_PUB_BRIGHTNESS), 
-                                  Utils::IntegerToDecString(
-                                      this->brightness_u8, &this->mqttPayload[0]), true);
-            p_trace->println(trace_PURE_MSG, 
-                                  Utils::IntegerToDecString(
-                                      this->brightness_u8, &this->mqttPayload[0]));
+            ret = PublishMessage(client, MQTT_PUB_BRIGHTNESS, 
+                                    Utils::IntegerToDecString(this->brightness_u8, 
+                                                                &this->mqttPayload[0]));
             if(ret)
             {
                 publishState_bol = false;     
@@ -270,8 +255,8 @@ bool DimLight::ProcessPublishRequests(PubSubClient *client)
     }
     else
     {
-        p_trace->println(trace_ERROR_MSG, 
-                         "<<dimLight>> connection failure in ProcessPublishRequests "); 
+        p_trace->print(trace_ERROR_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, " connection failure in ProcessPublishRequests "); 
     }
     return ret; 
 };
@@ -304,13 +289,14 @@ void DimLight::SetLight(void)
 *//*-----------------------------------------------------------------------------------*/
 void DimLight::TurnLightOff(void)
 {
-  if(true == this->isInitialized_bol)
-  {
-      this->lightState_bol = false;
-      this->gpio_p->AnalogWrite(0);    
-      p_trace->println(trace_INFO_MSG, "<<dimLight>>light turned off");
-      this->publishState_bol = true;
-  }
+    if(true == this->isInitialized_bol)
+    {
+        this->lightState_bol = false;
+        this->gpio_p->AnalogWrite(0);    
+        p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, "light turned off");
+        this->publishState_bol = true;
+    }
 }
 
 /**---------------------------------------------------------------------------------------
@@ -321,14 +307,15 @@ void DimLight::TurnLightOff(void)
 *//*-----------------------------------------------------------------------------------*/
 void DimLight::TurnLightOn(void)
 {
-  if(true == this->isInitialized_bol)
-  {
-      this->lightState_bol = true;
-      this->gpio_p->AnalogWrite(
-          (uint16_t)(((float)this->brightness_u8 * (1023.0F/100.0F)) + 0.5F));
-      p_trace->println(trace_INFO_MSG, "<<dimLight>>light turned on");
-      this->publishState_bol = true;
-  }
+    if(true == this->isInitialized_bol)
+    {
+        this->lightState_bol = true;
+        this->gpio_p->AnalogWrite(
+            (uint16_t)(((float)this->brightness_u8 * (1023.0F/100.0F)) + 0.5F));
+        p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+        p_trace->println(trace_PURE_MSG, "light turned on");
+        this->publishState_bol = true;
+    }
 }
 
 /**---------------------------------------------------------------------------------------
@@ -357,23 +344,56 @@ void DimLight::ToggleLight(void)
  * @param     topic       pointer to topic string
  * @return    combined topic as char pointer, it uses buffer_stca to store the topic
 *//*-----------------------------------------------------------------------------------*/
-char* DimLight::BuildSendTopic(const char *topic) 
+char* DimLight::BuildReceiveTopic(const char *topic) 
 {
-  sprintf(buffer_ca, "std/%s/s/%s/%s", this->dev_p, this->channel_p, topic);
-  return buffer_ca;
+    return (Utils::BuildReceiveTopic(this->dev_p, this->channel_p, 
+                                      topic, this->topicBuff_ca));
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     This function helps to build the complete topic including the 
- *              custom device.
+ * @brief     This function publishes a message
  * @author    winkste
- * @date      20 Okt. 2017
- * @param     topic       pointer to topic string
- * @return    combined topic as char pointer, it uses buffer_stca to store the topic
+ * @date      24 Sep. 2018
+ * @param     client_p       pointer to pub sub client
+ * @param     message_cp       pointer to topic string
+ * @param     payload_ccp       pointer to topic payload string
+ * @return    true, if message was successful send
 *//*-----------------------------------------------------------------------------------*/
-char* DimLight::BuildReceiveTopic(const char *topic) 
+boolean DimLight::PublishMessage(PubSubClient *client_p, const char *message_cp, 
+                                  const char * payload_ccp)
 {
-  sprintf(buffer_ca, "std/%s/r/%s/%s", this->dev_p, this->channel_p, topic);
-  return buffer_ca;
+    boolean ret_bol = false;
+
+    p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+    p_trace->print(trace_PURE_MSG, "publish message: ");
+    p_trace->print(trace_PURE_MSG, 
+                    Utils::BuildSendTopic(this->dev_p, this->channel_p, 
+                                          message_cp, this->topicBuff_ca));
+    p_trace->print(trace_PURE_MSG, "  :  ");
+    ret_bol = client_p->publish(Utils::BuildSendTopic(this->dev_p, this->channel_p, 
+                                          message_cp, this->topicBuff_ca), 
+                                  payload_ccp, true);
+    p_trace->println(trace_PURE_MSG, payload_ccp);
+    
+    return(ret_bol);
 }
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function publishes a message
+ * @author    winkste
+ * @date      24 Sep. 2018
+ * @param     client_p       pointer to pub sub client
+ * @param     topic_ccp      topic fragment
+ * @return    N/A
+*//*-----------------------------------------------------------------------------------*/
+void DimLight::Subscribe(PubSubClient *client_p, const char *topic_ccp)
+{
+    const char *localTopic_ccp = BuildReceiveTopic(topic_ccp);
+
+    client_p->subscribe(localTopic_ccp);  
+    client_p->loop();
+    p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+    p_trace->println(trace_PURE_MSG, localTopic_ccp);
+}
+
 

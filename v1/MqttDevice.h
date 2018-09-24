@@ -75,6 +75,7 @@ class MqttDevice
         bool                isConnected_bol;
         Trace               *p_trace;
         const char          *dev_p;
+        const char          *deviceName_ccp = "<<mqttDevice>>";
         
         static bool         startWifiConfig_bol;
 

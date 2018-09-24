@@ -70,13 +70,14 @@ class DimLight : public MqttDevice
     private:
         /********************************************************************************/
         /* Private data definitions */ 
-        boolean lightState_bol      = false;
-        boolean publishState_bol    = true;
-        char buffer_ca[100];
-        char *channel_p;
-        GpioDevice *gpio_p;
-        uint8_t brightness_u8       = 20;  
-        char mqttPayload[20];    
+        boolean     lightState_bol      = false;
+        boolean     publishState_bol    = true;
+        char        topicBuff_ca[100];
+        char        *channel_p;
+        GpioDevice  *gpio_p;
+        uint8_t     brightness_u8       = 20;  
+        char        mqttPayload[20];    
+        char const  *DEVICE_NAME        = "<<dimLight>>";
         
         /********************************************************************************/
         /* Private function definitions: */
@@ -85,7 +86,8 @@ class DimLight : public MqttDevice
         void SetLight(void);
         void ToggleLight(void);
         char* BuildReceiveTopic(const char *topic);
-        char* BuildSendTopic(const char *topic);
+        boolean PublishMessage(PubSubClient *client_p, const char *message_cp, const char * payload_ccp);
+        void Subscribe(PubSubClient *client_p, const char *topic_ccp);
     protected:
         /********************************************************************************/
         /* Protected data definitions */
