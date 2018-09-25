@@ -133,7 +133,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define BME_DEEPSLEEP_TIME              60u
 
 #define DIM_LIGHT_1                     WEMOS_PIN_D4
-#define MQTT_DIM_LIGHT_1                "dim_one"
+#define MQTT_DIM_LIGHT_1                "light_one"
 
 
 #define MQTT_CHAN_ONE                   "relay_one"

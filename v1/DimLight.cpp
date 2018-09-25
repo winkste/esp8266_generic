@@ -393,6 +393,7 @@ void DimLight::Subscribe(PubSubClient *client_p, const char *topic_ccp)
     client_p->subscribe(localTopic_ccp);  
     client_p->loop();
     p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+    p_trace->print(trace_PURE_MSG, "subscribe message: ");
     p_trace->println(trace_PURE_MSG, localTopic_ccp);
 }
 
