@@ -56,6 +56,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_H801                 0x11u
 #define CAPABILITY_DIM_LIGHT            0x10u
 #define CAPABILITY_MULTI_SENSE          0x0Fu
 #define CAPABILITY_MOISTURE_ONLY        0x0Eu
@@ -81,6 +82,28 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define WEMOS_PIN_D6                    12u // D6
 #define WEMOS_PIN_D7                    13u // D7
 #define WEMOS_PIN_D8                    15u // D8
+
+#define H801_PIN
+
+// RGB FET
+#define H801_PIN_RED                    15u //12
+#define H801_PIN_GREEN                  13u //15
+#define H801_PIN_BLUE                   12u //13
+// W FET
+#define H801_PIN_W1                     14u
+#define H801_PIN_W2                     4u
+// onbaord green LED D1
+#define H801_PIN_LED                   5
+// onbaord red LED D2
+#define H801_PIN_LED2                  1
+
+#define MQTT_H801_LIGHT_RED            "light_one"
+#define MQTT_H801_LIGHT_GREEN           "light_two"
+#define MQTT_H801_LIGHT_BLUE            "light_three"
+#define MQTT_H801_LIGHT_W1              "light_four"
+#define MQTT_H801_LIGHT_W2              "light_five"
+#define MQTT_H801_LIGHT_LED             "light_six"
+#define MQTT_H801_LIGHT_LED2            "light_seven"
 
 #define RELAY_PIN_ONE                   WEMOS_PIN_D1
 #define RELAY_PIN_TWO                   WEMOS_PIN_D2
@@ -372,6 +395,16 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, DIM_LIGHT_1, OUTPUT);
             device_p = new DimLight(trace_p, gpio_p, MQTT_DIM_LIGHT_1);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dim light one");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_H801:
+            gpio_p   = new EspGpio(trace_p, H801_PIN_LED, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_LED);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 led");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, H801_PIN_LED2, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_LED2);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 led2");
             deviceList_p->add(device_p);
             break;
         default:
