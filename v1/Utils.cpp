@@ -72,7 +72,8 @@ Utils::~Utils()
  * @brief     Copies a float value to a character buffer
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    n/a
+ * @param     buffer_p    pointer to result buffer string
+ * @return    pointer to char buffer
 *//*-----------------------------------------------------------------------------------*/
 char* Utils::FloatToString(float f, int p, char* pBuffer)
 {
@@ -83,12 +84,31 @@ char* Utils::FloatToString(float f, int p, char* pBuffer)
  * @brief     Copies a integer value to decimal representive in a character buffer
  * @author    winkste
  * @date      20 Okt. 2017
- * @return    n/a
+ * @param     buffer_p    pointer to result buffer string
+ * @return    pointer to char buffer
 *//*-----------------------------------------------------------------------------------*/
 char* Utils::IntegerToDecString(uint32_t i, char* pBuffer)
 {
     return itoa(i, pBuffer, 10);       // call the library function
 }
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Copies a integer value to decimal representive in a character buffer
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     red_u8      decimal red value
+ * @param     green_u8    decimal green value
+ * @param     blue_u8     decimal blue value
+ * @param     buffer_p    pointer to result buffer string
+ * @return    pointer to char buffer
+*//*-----------------------------------------------------------------------------------*/
+char* Utils::RGBToString(uint8_t red_u8, uint8_t green_u8, uint8_t blue_u8, 
+                          char* pBuffer_p)
+{
+    snprintf(pBuffer_p, 20, "%d,%d,%d", red_u8, green_u8, blue_u8);
+    return(pBuffer_p);
+}
+
 
 /**---------------------------------------------------------------------------------------
  * @brief     This function helps to build the complete topic including the 

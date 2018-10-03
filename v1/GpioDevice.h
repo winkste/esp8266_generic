@@ -59,6 +59,7 @@ class GpioDevice
         GpioDevice(Trace *p_trace);
         GpioDevice(Trace *p_trace, uint8_t pin_u8);
         GpioDevice(Trace *p_trace, uint8_t pin_u8, uint8_t dir_u8);
+        uint8_t GetPinNumber_u8(void);
         virtual ~GpioDevice();
         //virtual void Initialize();
         virtual void PinMode(uint8_t dir_u8) = 0;
