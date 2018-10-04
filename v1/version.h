@@ -67,6 +67,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 022       25.08         SWI     introduce bcast and trace/capability write commands                         
 * 023       19.09         SWI     introduce utils and DimLight device
 * 024       24.09         SWI     reworked the DimLight device to more standardize
+* 025       04.10         SWI     introduced neo pixels support
 *****************************************************************************************/
 #ifndef VERSION_H
 #define VERSION_H
@@ -77,7 +78,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "024"     // Firmware Version
+#define FW_VERSION                "025"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

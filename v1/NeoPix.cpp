@@ -41,13 +41,17 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Utils.h"
 #include <Adafruit_NeoPixel.h>
 
+#ifdef __AVR__
+  #include <avr/power.h>
+#endif
+
 /****************************************************************************************/
 /* Local constant defines */
 #define MQTT_SUB_TOGGLE           "toggle" // command message for toggle command
 #define MQTT_SUB_SWITCH           "switch" // command message for digital switch
 #define MQTT_PUB_LIGHT_STATE      "status" //digital state of light
-#define MQTT_SUB_RGB              "rgb" // command message for rgb state
-#define MQTT_PUB_RGB              "rgb" // state message for rgb state
+#define MQTT_SUB_RGB              "color" // command message for rgb state
+#define MQTT_PUB_RGB              "color" // state message for rgb state
 #define MQTT_SUB_BRIGHTNESS       "brightness" // command message for button commands
 #define MQTT_PUB_BRIGHTNESS       "brightness" // state message for brightness
 #define MQTT_DEFAULT_CHAN         "neo_one"
@@ -109,9 +113,9 @@ void NeoPix::Initialize()
     // to use to send signals. Note that for older NeoPixel strips you might need to 
     // change the third parameter--see the strandtest example for more information on 
     //possible values.
-    this->pixels_cl = Adafruit_NeoPixel(this->numPixels_u16c, 
+    this->pixels_pcl = new Adafruit_NeoPixel(this->numPixels_u16c, 
                                     gpio_pcl->GetPinNumber_u8(), NEO_GRB + NEO_KHZ800);
-    this->pixels_cl.begin(); // This initializes the NeoPixel library.
+    this->pixels_pcl->begin(); // This initializes the NeoPixel library.
 
     p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
     p_trace->println(trace_PURE_MSG, " initialized");
@@ -328,8 +332,8 @@ void NeoPix::TurnOff_vd(void)
     if(true == this->isInitialized_bol)
     {
         this->lightState_bol = false;
-        this->pixels_cl.setPixelColor(0, 0, 0, 0);
-        this->pixels_cl.show();   
+        this->pixels_pcl->setPixelColor(0, 0, 0, 0);
+        this->pixels_pcl->show();   
         p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
         p_trace->println(trace_PURE_MSG, "light turned off");
         this->neoStateChanged_bol = true;
@@ -348,11 +352,11 @@ void NeoPix::TurnOn_vd(void)
     {
         this->lightState_bol = true;
         
-        this->pixels_cl.setPixelColor(0, this->pixels_cl.Color(this->red_u8, 
+        this->pixels_pcl->setPixelColor(0, this->pixels_pcl->Color(this->red_u8, 
                                                             this->green_u8,
                                                             this->blue_u8));
-        this->pixels_cl.setBrightness(this->brightness_u8);
-        this->pixels_cl.show(); // This sends the updated pixel color to the hardware.
+        this->pixels_pcl->setBrightness(this->brightness_u8);
+        this->pixels_pcl->show(); // This sends the updated pixel color to the hardware.
 
         p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
         p_trace->println(trace_PURE_MSG, "light turned on");

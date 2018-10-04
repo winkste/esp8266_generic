@@ -85,8 +85,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define WEMOS_PIN_D7                    13u // D7
 #define WEMOS_PIN_D8                    15u // D8
 
-#define NEOPIXELS_PIN                   WEMOS_PIN_D3
-#define MQTT_NEOPIXELS                  "neo_one"
+#define NEOPIXELS_PIN                   WEMOS_PIN_D1
+#define MQTT_NEOPIXELS                  "light_one"
 
 // RGB FET
 #define H801_PIN_RED                    15u //12

@@ -86,7 +86,7 @@ class NeoPix : public MqttDevice
         uint8_t             red_u8              = defaultRed_u8c;
         uint8_t             green_u8            = defaultGreen_u8c;
         uint8_t             blue_u8             = defaultBlue_u8c;
-        Adafruit_NeoPixel   pixels_cl;
+        Adafruit_NeoPixel   *pixels_pcl;
         
         /********************************************************************************/
         /* Private function definitions: */
