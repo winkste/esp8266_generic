@@ -393,6 +393,10 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             device_p = new Temt6000(trace_p, gpio_p);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated temt6000 device");
             deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, NEOPIXELS_PIN, OUTPUT);
+            device_p = new NeoPix(trace_p, gpio_p, MQTT_NEOPIXELS);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated neopixels object");
+            deviceList_p->add(device_p);
             break;
         case CAPABILITY_DIM_LIGHT:
             gpio_p   = new EspGpio(trace_p, DIM_LIGHT_1, OUTPUT);
