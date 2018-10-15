@@ -405,6 +405,26 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_H801:
+            gpio_p   = new EspGpio(trace_p, H801_PIN_RED, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_RED);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 red chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, H801_PIN_GREEN, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_GREEN);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 green chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, H801_PIN_BLUE, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_BLUE);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 blue chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, H801_PIN_W1, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_W1);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 W1 chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, H801_PIN_W2, OUTPUT);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_W2);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 W2 chan");
+            deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, H801_PIN_LED, OUTPUT);
             device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_LED);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 led");
