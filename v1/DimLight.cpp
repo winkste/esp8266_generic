@@ -314,7 +314,7 @@ void DimLight::TurnLightOn(void)
         this->lightState_bol = true;
         /*this->gpio_p->AnalogWrite(
             (uint16_t)(((float)this->brightness_u8 * (1023.0F/100.0F)) + 0.5F));*/
-        this->gpio_p->AnalogWrite(CalcLogBrightness(this->brightness_u8));
+        this->gpio_p->AnalogWrite(Utils::CalcLogDigitsFromPercent(this->brightness_u8));
         p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
         p_trace->println(trace_PURE_MSG, "light turned on");
         this->publishState_bol = true;
@@ -398,18 +398,5 @@ void DimLight::Subscribe(PubSubClient *client_p, const char *topic_ccp)
     p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
     p_trace->print(trace_PURE_MSG, "subscribe message: ");
     p_trace->println(trace_PURE_MSG, localTopic_ccp);
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function calculates the logarithm analogue value (0-1023) based on the 
- *              linear  input percentage (0-100%).
- * @author    winkste
- * @date      24 Oct. 2018
- * @param     brightness_u8       percentage of brightness
- * @return    N/A
-*//*-----------------------------------------------------------------------------------*/
-uint16_t DimLight::CalcLogBrightness(uint8_t brightness_u8)
-{
-  return(uint16_t) ((1023.0D * log10(max(1U, brightness_u8))) / log10(100.0) + 0.5F);
 }
 

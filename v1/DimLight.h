@@ -88,7 +88,6 @@ class DimLight : public MqttDevice
         char* BuildReceiveTopic(const char *topic);
         boolean PublishMessage(PubSubClient *client_p, const char *message_cp, const char * payload_ccp);
         void Subscribe(PubSubClient *client_p, const char *topic_ccp);
-        uint16_t CalcLogBrightness(uint8_t brightness_u8);
     protected:
         /********************************************************************************/
         /* Protected data definitions */

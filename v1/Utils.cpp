@@ -163,6 +163,20 @@ char* Utils::BuildReceiveTopic(const char *dev_p, const char *channel_p,
   return buffer_p;
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     This function calculates the logarithm digits value (0-1023) based on the 
+ *              linear  input percentage (0-100%).
+ * @author    winkste
+ * @date      24 Oct. 2018
+ * @param     percent_u8       percentage value 0-100
+ * @return    N/A
+*//*-----------------------------------------------------------------------------------*/
+uint16_t Utils::CalcLogDigitsFromPercent(uint8_t percent_u8)
+{
+  return(uint16_t) ((1023.0D * log10(max((uint8_t)1U, percent_u8))) 
+                      / log10(100.0) + 0.5F);
+}
+
 /****************************************************************************************/
 /* Private functions: */
 
