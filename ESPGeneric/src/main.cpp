@@ -449,7 +449,7 @@ void saveConfigCallback()
   trace_st.println(trace_INFO_MSG, "======== End of parameters ========");
 
   char* temp = (char*) &mqttData_sts;
-  for (int i = 0; i < sizeof(mqttData_sts); i++) {
+  for (unsigned int i = 0; i < sizeof(mqttData_sts); i++) {
     EEPROM.write(i, *temp);
     temp++;
   }
@@ -482,7 +482,7 @@ void loadConfig()
   // fill the mqtt element with all the data from eeprom
   char* temp = (char*) &mqttData_sts;
 
-  for (int i = 0; i < sizeof(mqttData_sts); i++)
+  for (unsigned int i = 0; i < sizeof(mqttData_sts); i++)
   {
     *temp = EEPROM.read(i);
     temp++;

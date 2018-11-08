@@ -68,7 +68,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 SingleRelay::SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, 
-                    char* relayChan_p, bool invert_bol) : MqttDevice(p_trace)
+                    const char* relayChan_p, bool invert_bol) : MqttDevice(p_trace)
 {
     this->prevTime_u32      = 0;
     this->publications_u16  = 0;

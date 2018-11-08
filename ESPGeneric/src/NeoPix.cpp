@@ -76,7 +76,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * @param     neoChan_pch   pointer to character sequence for channel identifier
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-NeoPix::NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, char* neoChan_pch) 
+NeoPix::NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, const char* neoChan_pch) 
                 : MqttDevice(trace_pcl)
 {
     this->deviceName_ccp        = DEVICE_NAME;

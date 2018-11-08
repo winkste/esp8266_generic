@@ -96,9 +96,11 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define H801_PIN_W1                     14u
 #define H801_PIN_W2                     4u
 // onbaord green LED D1
-#define H801_PIN_LED                   5
+#define H801_PIN_LED                    5U
 // onbaord red LED D2
-#define H801_PIN_LED2                  1
+#define H801_PIN_LED2                   1U
+// beause of current consumption, set max dim to 800 digits
+#define MAX_DIM_DIGITS                  800U
 
 #define MQTT_H801_LIGHT_RED             "light_one"
 #define MQTT_H801_LIGHT_GREEN           "light_two"
@@ -406,15 +408,15 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             break;
         case CAPABILITY_H801:
             gpio_p   = new EspGpio(trace_p, H801_PIN_RED, OUTPUT);
-            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_RED);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_RED, MAX_DIM_DIGITS);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 red chan");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, H801_PIN_GREEN, OUTPUT);
-            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_GREEN);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_GREEN, MAX_DIM_DIGITS);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 green chan");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, H801_PIN_BLUE, OUTPUT);
-            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_BLUE);
+            device_p = new DimLight(trace_p, gpio_p, MQTT_H801_LIGHT_BLUE, MAX_DIM_DIGITS);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 blue chan");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, H801_PIN_W1, OUTPUT);

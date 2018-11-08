@@ -59,7 +59,9 @@ class DimLight : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        DimLight(Trace *p_trace, GpioDevice  *gpio_p, char* relayChan_p);
+        DimLight(Trace *p_trace, GpioDevice  *gpio_p, const char* relayChan_p);
+        DimLight(Trace *p_trace, GpioDevice  *gpio_p, const char* relayChan_p, 
+                    uint16_t maxDigit_u16);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -73,11 +75,12 @@ class DimLight : public MqttDevice
         boolean     lightState_bol      = false;
         boolean     publishState_bol    = true;
         char        topicBuff_ca[100];
-        char        *channel_p;
+        const char  *channel_p;
         GpioDevice  *gpio_p;
         uint8_t     brightness_u8       = 20;  
         char        mqttPayload[20];    
         char const  *DEVICE_NAME        = "<<dimLight>>";
+        uint16_t maxDigit_u16           = 1023U;
         
         /********************************************************************************/
         /* Private function definitions: */

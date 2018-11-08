@@ -60,7 +60,7 @@ class NeoPix : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, char* neoChan_pch);
+        NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, const char* neoChan_pch);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -75,7 +75,7 @@ class NeoPix : public MqttDevice
         boolean             neoStateChanged_bol = true;
         uint8_t             brightness_u8       = 20; 
         char                topicBuff_cha[100];
-        char                *channel_pch;
+        const char          *channel_pch;
         GpioDevice          *gpio_pcl;  
         char                mqttPayload_cha[20];    
         char const          *DEVICE_NAME        = "<<neoPix>>";

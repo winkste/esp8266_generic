@@ -59,7 +59,7 @@ class SingleRelay : public MqttDevice
 
         /********************************************************************************/
         /* Public function definitions: */
-        SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, char* relayChan_p, bool invert_bol);
+        SingleRelay(Trace *p_trace, GpioDevice  *gpio_p, const char* relayChan_p, bool invert_bol);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -74,7 +74,7 @@ class SingleRelay : public MqttDevice
         boolean relayState_bol        = false;
         boolean publishState_bol      = true;
         char buffer_ca[100];
-        char *channel_p;
+        const char *channel_p;
         boolean invert_bol            = false;
         GpioDevice *gpio_p;
         

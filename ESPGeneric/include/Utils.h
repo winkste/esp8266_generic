@@ -65,6 +65,7 @@ class Utils
         static char* BuildReceiveTopic(const char *dev_p, const char *channel_p, 
                                       const char *topic_p, char *buffer_p); 
         static uint16_t CalcLogDigitsFromPercent(uint8_t percent_u8);
+        static uint16_t CalcLogDigitsFromPercent(uint8_t percent_u8, uint16_t maxVal_u16);
         virtual
         ~Utils();
     private:

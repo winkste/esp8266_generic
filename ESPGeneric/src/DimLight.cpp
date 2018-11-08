@@ -72,7 +72,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p, 
-                                char* lightChan_p) : MqttDevice(p_trace)
+                                const char* lightChan_p) : MqttDevice(p_trace)
 {
     this->deviceName_ccp    = DEVICE_NAME;
     this->prevTime_u32      = 0;
@@ -81,7 +81,24 @@ DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p,
     this->publishState_bol  = true;
     this->channel_p         = lightChan_p; 
     this->gpio_p            = gpio_p;
+    this->maxDigit_u16      = 1023U;
     this->brightness_u8     = 20;   // start with 20% brightness
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for the single dimmable light 
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace       trace object for info and error messages
+ * @param     gpio_p        gpio object configured as output
+ * @param     light_Chan_p  light topic message with channel information
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p, const char* lightChan_p, 
+                    uint16_t maxDigit_u16) 
+                    : DimLight(p_trace, gpio_p, lightChan_p, maxDigit_u16)
+{
+    this->maxDigit_u16      = 1023U;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -314,7 +331,8 @@ void DimLight::TurnLightOn(void)
         this->lightState_bol = true;
         /*this->gpio_p->AnalogWrite(
             (uint16_t)(((float)this->brightness_u8 * (1023.0F/100.0F)) + 0.5F));*/
-        this->gpio_p->AnalogWrite(Utils::CalcLogDigitsFromPercent(this->brightness_u8));
+        this->gpio_p->AnalogWrite(Utils::CalcLogDigitsFromPercent(this->brightness_u8, 
+                                                                    this->maxDigit_u16));
         p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
         p_trace->println(trace_PURE_MSG, "light turned on");
         this->publishState_bol = true;

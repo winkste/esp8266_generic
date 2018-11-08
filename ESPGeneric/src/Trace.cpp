@@ -325,7 +325,6 @@ void Trace::println(uint8_t type_u8, uint16_t value_u16)
 *//*-----------------------------------------------------------------------------------*/
 void Trace::PushToChannel()
 {
-  boolean ret = false;
   Message *msg_p;
 
   switch(this->channel_u8)

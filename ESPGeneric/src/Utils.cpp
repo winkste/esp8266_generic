@@ -177,6 +177,21 @@ uint16_t Utils::CalcLogDigitsFromPercent(uint8_t percent_u8)
                       / log10(100.0) + 0.5F);
 }
 
+/**---------------------------------------------------------------------------------------
+ * @brief     This function calculates the logarithm digits value (0-1023) based on the 
+ *              linear  input percentage (0-100%).
+ * @author    winkste
+ * @date      24 Oct. 2018
+ * @param     percent_u8       percentage value 0-100
+ * @param     maxVal_u16       maximum digit value
+ * @return    N/A
+*//*-----------------------------------------------------------------------------------*/
+uint16_t Utils::CalcLogDigitsFromPercent(uint8_t percent_u8, uint16_t maxVal_u16)
+{
+  return(uint16_t) ((maxVal_u16 * log10(max((uint8_t)1U, percent_u8))) 
+                      / log10(100.0) + 0.5F);
+}
+
 /****************************************************************************************/
 /* Private functions: */
 

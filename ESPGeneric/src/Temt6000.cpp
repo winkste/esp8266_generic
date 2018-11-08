@@ -198,7 +198,6 @@ bool Temt6000::ProcessPublishRequests(PubSubClient *client)
 {
     String tPayload;
     boolean ret = false;
-    uint16_t rawData_u16;
 
 
     if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
