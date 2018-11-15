@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "ESPGeneric"
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.osx": {
+			"PATH": "/Volumes/Macintosh HD/Users/stephan_wink/.platformio/penv/bin:/Volumes/Macintosh HD/Users/stephan_wink/.platformio/penv:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Volumes/case-sensitive/esp-open-sdk/xtensa-lx106-elf/bin:/opt/X11/bin",
+			"PLATFORMIO_CALLER": "vscode"
+		}
+	}
+}

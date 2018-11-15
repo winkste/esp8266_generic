@@ -27,3 +27,6 @@ sensorTest/Debug/src/DhtSensor.d
 
 sensorTest/Debug/src/DhtSensor.d
 *.json
+*.bin
+*.elf
+*.bin

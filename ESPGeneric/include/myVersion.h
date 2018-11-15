@@ -68,6 +68,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 023       19.09         SWI     introduce utils and DimLight device
 * 024       24.09         SWI     reworked the DimLight device to more standardize
 * 025       04.10         SWI     introduced neo pixels support
+* 026       07.11         SWI     migrated to platformio, add max digit in DimLight, add
+                                    3D printer control device
 *****************************************************************************************/
 #ifndef MYVERSION_H
 #define MYVERSION_H
@@ -78,7 +80,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "025"     // Firmware Version
+#define FW_VERSION                "026"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/

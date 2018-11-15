@@ -57,6 +57,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_3D_PRINTER           0x13u
 #define CAPABILITY_NEOPIXELS            0x12u
 #define CAPABILITY_H801                 0x11u
 #define CAPABILITY_DIM_LIGHT            0x10u
@@ -84,6 +85,19 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define WEMOS_PIN_D6                    12u // D6
 #define WEMOS_PIN_D7                    13u // D7
 #define WEMOS_PIN_D8                    15u // D8
+
+#define PRT_3D_CTRL_REL_1               WEMOS_PIN_D1
+#define PRT_3D_CTRL_MQTT_REL_1          "relay_one"
+#define PRT_3D_CTRL_REL_2               WEMOS_PIN_D2
+#define PRT_3D_CTRL_MQTT_REL_2          "relay_two"
+#define PRT_3D_CTRL_DIM_1               WEMOS_PIN_D3
+#define PRT_3D_CTRL_MQTT_DIM_1          "light_one"
+#define PRT_3D_CTRL_DIM_2               WEMOS_PIN_D0
+#define PRT_3D_CTRL_MQTT_DIM_2          "light_one"
+#define PRT_3D_CTRL_DHT_DATA_1          WEMOS_PIN_D6
+#define PRT_3D_CTRL_DHT_PWR_1           WEMOS_PIN_D5
+#define PRT_3D_CTRL_DHT_DATA_2          WEMOS_PIN_D8
+#define PRT_3D_CTRL_DHT_PWR_2           WEMOS_PIN_D7
 
 #define NEOPIXELS_PIN                   WEMOS_PIN_D1
 #define MQTT_NEOPIXELS                  "light_one"
@@ -440,6 +454,32 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, NEOPIXELS_PIN, OUTPUT);
             device_p = new NeoPix(trace_p, gpio_p, MQTT_NEOPIXELS);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated neopixels object");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_3D_PRINTER:
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DIM_1);
+            device_p = new DimLight(trace_p, gpio_p, PRT_3D_CTRL_MQTT_DIM_1);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 red chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DIM_2);
+            device_p = new DimLight(trace_p, gpio_p, PRT_3D_CTRL_MQTT_DIM_2);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 red chan");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_REL_1, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_1, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device one");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_REL_2, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_2, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device one");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DHT_PWR_1, OUTPUT);
+            device_p = new DhtSensor(trace_p, PRT_3D_CTRL_DHT_DATA_1, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DHT_PWR_2, OUTPUT);
+            device_p = new DhtSensor(trace_p, PRT_3D_CTRL_DHT_DATA_2, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
             break;
         default:
