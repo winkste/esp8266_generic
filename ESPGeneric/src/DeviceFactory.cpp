@@ -93,7 +93,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define PRT_3D_CTRL_DIM_1               WEMOS_PIN_D3
 #define PRT_3D_CTRL_MQTT_DIM_1          "light_one"
 #define PRT_3D_CTRL_DIM_2               WEMOS_PIN_D0
-#define PRT_3D_CTRL_MQTT_DIM_2          "light_one"
+#define PRT_3D_CTRL_MQTT_DIM_2          "light_two"
 #define PRT_3D_CTRL_DHT_DATA_1          WEMOS_PIN_D6
 #define PRT_3D_CTRL_DHT_PWR_1           WEMOS_PIN_D5
 #define PRT_3D_CTRL_DHT_DATA_2          WEMOS_PIN_D8
@@ -478,7 +478,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DHT_PWR_2, OUTPUT);
-            device_p = new DhtSensor(trace_p, PRT_3D_CTRL_DHT_DATA_2, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
+            device_p = new DhtSensor(trace_p, PRT_3D_CTRL_DHT_DATA_2, gpio_p, MS_DHT_REPORT_CYCLE_TIME, 1);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
             break;
