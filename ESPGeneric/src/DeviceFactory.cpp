@@ -466,11 +466,11 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated h801 red chan");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_REL_1, OUTPUT);
-            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_1, false);
+            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_1, true);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device one");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_REL_2, OUTPUT);
-            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_2, false);
+            device_p = new SingleRelay(trace_p, gpio_p, PRT_3D_CTRL_MQTT_REL_2, true);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device one");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DHT_PWR_1, OUTPUT);
