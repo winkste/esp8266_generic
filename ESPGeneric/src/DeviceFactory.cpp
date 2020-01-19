@@ -52,11 +52,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "Temt6000.h"
 #include "DimLight.h"
 #include "NeoPix.h"
+#include "GenSensor.h"
 
 /****************************************************************************************/
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_MULTI_SENSE_RELAY    0x14u
 #define CAPABILITY_3D_PRINTER           0x13u
 #define CAPABILITY_NEOPIXELS            0x12u
 #define CAPABILITY_H801                 0x11u
@@ -164,6 +166,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MS_DHT_OUT_PWR_PIN              WEMOS_PIN_D7
 #define MS_TEMT6000_OUT_PWR_PIN         WEMOS_PIN_D8
 #define MS_DHT_REPORT_CYCLE_TIME        30u
+#define MS_RELAY_PIN_ONE                WEMOS_PIN_D6
  
 
 #define PIR_SONOFF_INPUT_PIN            WEMOS_PIN_D5
@@ -396,6 +399,8 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_MULTI_SENSE:
+            device_p = new GenSensor(trace_p);
+            deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, MS_DHT_OUT_PWR_PIN, OUTPUT);
             device_p = new DhtSensor(trace_p, MS_DHT_OUT_DATA_PIN, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
@@ -412,6 +417,31 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, NEOPIXELS_PIN, OUTPUT);
             device_p = new NeoPix(trace_p, gpio_p, MQTT_NEOPIXELS);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated neopixels object");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_MULTI_SENSE_RELAY:
+            device_p = new GenSensor(trace_p);
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, MS_DHT_OUT_PWR_PIN, OUTPUT);
+            device_p = new DhtSensor(trace_p, MS_DHT_OUT_DATA_PIN, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            deviceList_p->add(device_p);
+            pirDevice_p = new Pir(trace_p, MS_PIR_INPUT_PIN);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, MS_TEMT6000_OUT_PWR_PIN, OUTPUT);
+            device_p = new Temt6000(trace_p, gpio_p);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated temt6000 device");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, NEOPIXELS_PIN, OUTPUT);
+            device_p = new NeoPix(trace_p, gpio_p, MQTT_NEOPIXELS);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated neopixels object");
+            deviceList_p->add(device_p);
+            gpio_p   = new EspGpio(trace_p, MS_RELAY_PIN_ONE, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_ONE, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_DIM_LIGHT:

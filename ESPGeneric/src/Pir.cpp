@@ -331,7 +331,7 @@ void Pir::VerifyPirState(void)
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void Pir::UpdatePirState() 
+ICACHE_RAM_ATTR void Pir::UpdatePirState() 
 {
   // check if we changed PIR state
   if((HIGH == digitalRead(Pir::mySelf_p->pirPin_u8)) /*&& (false == Pir::mySelf_p->pirState_bol)*/)

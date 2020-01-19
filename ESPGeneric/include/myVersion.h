@@ -71,6 +71,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 026       07.11         SWI     migrated to platformio, add max digit in DimLight, add
                                     3D printer control device
 * 027       06.01         SWI     changed polarity of 3D control relays
+* 028       02.01.2020    SWI     add Generic Sensor device, used for health monitoring
+* 029       18.01         SWI     updated arduino core library and WifiManager library
+*                                 generated MultiSense + Relay One device
 *****************************************************************************************/
 #ifndef MYVERSION_H
 #define MYVERSION_H
@@ -81,7 +84,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "027"     // Firmware Version
+#define FW_VERSION                "029"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/
