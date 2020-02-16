@@ -440,7 +440,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated neopixels object");
             deviceList_p->add(device_p);
             gpio_p   = new EspGpio(trace_p, MS_RELAY_PIN_ONE, OUTPUT);
-            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_ONE, false);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_ONE, true);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay device");
             deviceList_p->add(device_p);
             break;

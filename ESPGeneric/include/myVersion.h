@@ -74,6 +74,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * 028       02.01.2020    SWI     add Generic Sensor device, used for health monitoring
 * 029       18.01         SWI     updated arduino core library and WifiManager library
 *                                 generated MultiSense + Relay One device
+* 030       16.02         SWI     add generic ota to the firmware
 *****************************************************************************************/
 #ifndef MYVERSION_H
 #define MYVERSION_H
@@ -84,7 +85,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global constant defines: */
 #define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "029"     // Firmware Version
+#define FW_VERSION                "030"     // Firmware Version
 #define FW_DESCRIPTION            "generic firmware for esp8266"
 
 /****************************************************************************************/
