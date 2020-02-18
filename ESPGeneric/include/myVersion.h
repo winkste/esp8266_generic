@@ -84,9 +84,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Global constant defines: */
-#define FW_IDENTIFIER             "00004FW" // Firmware identification
-#define FW_VERSION                "030"     // Firmware Version
-#define FW_DESCRIPTION            "generic firmware for esp8266"
+#define myVersion_FWIDENT           "00004FW" // Firmware identification
+#define myVersion_FWVERSION         "030"     // Firmware Version
+#define myVersion_FWDESCRIPTION     "generic firmware for esp8266"
 
 /****************************************************************************************/
 /* Global function like macro defines (to be avoided): */

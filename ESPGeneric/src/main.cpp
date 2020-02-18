@@ -68,6 +68,7 @@
 *****************************************************************************************/
 char* build_topic(const char *topic);
 char* build_ssid(const char *ssidName);
+char* buildPayload(String payload) ;
 
 /*****************************************************************************************
    Local type definitions (enum, struct, union):
@@ -81,8 +82,11 @@ char* build_ssid(const char *ssidName);
    Local data definitions:
    (always use static: limit visibility, const: read only, volatile: non-optimizable)
 *****************************************************************************************/
-static char buffer_stca[60];
+static char buffer_stca[100];
 static char ssid_stca[60];
+
+static char payload_stca[50];
+static IPAddress *ownIpAddress_sts;
 
 // buffer used to send/receive data with MQTT, can not be done with the
 // buffer_stca, as both are needed simultaniously
@@ -134,16 +138,25 @@ boolean processPublishRequests(void)
   {
     trace_st.println(trace_PURE_MSG, "");
     trace_st.print(trace_INFO_MSG, "<<gen>>publish requested info: ");
-    trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
-    trace_st.println(trace_PURE_MSG, FW_VERSION);
+    trace_st.print(trace_PURE_MSG, myVersion_FWIDENT);
+    trace_st.println(trace_PURE_MSG, myVersion_FWVERSION);
     trace_st.print(trace_INFO_MSG, "<<gen>>firmware description: ");
-    trace_st.println(trace_PURE_MSG, FW_DESCRIPTION);
+    trace_st.println(trace_PURE_MSG, myVersion_FWDESCRIPTION);
     trace_st.print(trace_INFO_MSG, "<<gen>>device room: ");
     trace_st.println(trace_PURE_MSG, &mqttData_sts.room[0]);
-    ret_bol = client_sts.publish(build_topic(MQTT_PUB_FW_IDENT), FW_IDENTIFIER, true);
-    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_FW_VERSION), FW_VERSION, true);
-    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_FW_DESC), FW_DESCRIPTION, true);
-    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_DEV_ROOM), &mqttData_sts.room[0], true);
+    trace_st.print(trace_INFO_MSG, "<<gen>> publish own IP address: ");
+    trace_st.println(trace_PURE_MSG, ownIpAddress_sts->toString());
+    ret_bol = client_sts.publish(build_topic(MQTT_PUB_FW_IDENT), 
+                                  myVersion_FWIDENT, true);
+    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_FW_VERSION), 
+                                  myVersion_FWVERSION, true);
+    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_FW_DESC), 
+                                  myVersion_FWDESCRIPTION, true);
+    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_DEV_ROOM), 
+                                  &mqttData_sts.room[0], true);
+    ret_bol &= client_sts.publish(build_topic(MQTT_PUB_OWN_IP), 
+                                  buildPayload(ownIpAddress_sts->toString()), true);
+
     if (ret_bol)
     {
       publishInfo_bolst = false;
@@ -364,13 +377,16 @@ void reconnect()
       // send out generic commands
       trace_st.println(trace_INFO_MSG, "<<gen>> subscribing finished");
       trace_st.print(trace_INFO_MSG, "<<gen>> publish firmware partnumber: ");
-      trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
-      trace_st.println(trace_PURE_MSG, FW_VERSION);
+      trace_st.print(trace_PURE_MSG, myVersion_FWIDENT);
+      trace_st.println(trace_PURE_MSG, myVersion_FWVERSION);
       trace_st.print(trace_INFO_MSG, "<<gen>> publish firmware description: ");
-      trace_st.println(trace_PURE_MSG, FW_DESCRIPTION);
-      client_sts.publish(build_topic(MQTT_PUB_FW_IDENT), FW_IDENTIFIER, true);
-      client_sts.publish(build_topic(MQTT_PUB_FW_VERSION), FW_VERSION, true);
-      client_sts.publish(build_topic(MQTT_PUB_FW_DESC), FW_DESCRIPTION, true);
+      trace_st.println(trace_PURE_MSG, myVersion_FWDESCRIPTION);
+      trace_st.print(trace_INFO_MSG, "<<gen>> publish own IP address: ");
+      trace_st.println(trace_PURE_MSG, ownIpAddress_sts->toString());
+      client_sts.publish(build_topic(MQTT_PUB_FW_IDENT), myVersion_FWIDENT, true);
+      client_sts.publish(build_topic(MQTT_PUB_FW_VERSION), myVersion_FWVERSION, true);
+      client_sts.publish(build_topic(MQTT_PUB_FW_DESC), myVersion_FWDESCRIPTION, true);
+      client_sts.publish(build_topic(MQTT_PUB_OWN_IP), buildPayload(ownIpAddress_sts->toString()), true);
       trace_st.println(trace_INFO_MSG, "<<gen>> publishing finished");
     }
     else
@@ -551,6 +567,20 @@ char* build_ssid(const char *ssidName)
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     This function converts the payload string to a char pointer, the char 
+ *            buffer is part of the object
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     payload       pointer to payload string
+ * @return    pointer to the payload string
+*//*-----------------------------------------------------------------------------------*/
+char* buildPayload(String payload) 
+{
+  payload.toCharArray(payload_stca, payload.length() + 1);
+  return(payload_stca);
+}
+
+/**---------------------------------------------------------------------------------------
    @brief     This is the initialize function for OTA updates
    @author    winkste
    @date      16 Feb. 2020
@@ -601,10 +631,10 @@ void setupCallback()
   trace_st.println(trace_PURE_MSG, "");
   trace_st.println(trace_INFO_MSG, "... starting");
   trace_st.print(trace_INFO_MSG, "Firmware Information:");
-  trace_st.print(trace_PURE_MSG, FW_IDENTIFIER);
-  trace_st.println(trace_PURE_MSG, FW_VERSION);
+  trace_st.print(trace_PURE_MSG, myVersion_FWIDENT);
+  trace_st.println(trace_PURE_MSG, myVersion_FWVERSION);
   trace_st.print(trace_INFO_MSG, "Firmware Description:");
-  trace_st.println(trace_PURE_MSG, FW_DESCRIPTION);
+  trace_st.println(trace_PURE_MSG, myVersion_FWDESCRIPTION);
   EEPROM.begin(512); // can be up to 4096
 
   // start wifi manager
@@ -614,7 +644,8 @@ void setupCallback()
   WiFi.mode(WIFI_STA); // avoid station and ap at the same time
 
   trace_st.println(trace_INFO_MSG, "<<gen>> connecting... ");
-  if (!wifiManager_sts.autoConnect(build_ssid(CONFIG_SSID))) {
+  if (!wifiManager_sts.autoConnect(build_ssid(CONFIG_SSID))) 
+  {
     // possible situataion: Main power out, ESP went to config mode as the routers wifi wasn available on time ..
     trace_st.println(trace_ERROR_MSG, "<<wifi>> failed to connect and hit timeout, restarting ...");
     delay(1000); // time for serial to print
@@ -635,6 +666,7 @@ void setupCallback()
   trace_st.println(trace_INFO_MSG, "<<gen>> connected");
   trace_st.print(trace_INFO_MSG, "<<gen>>  IP address: ");
   trace_st.println(trace_PURE_MSG, WiFi.localIP().toString());
+  ownIpAddress_sts = new IPAddress(WiFi.localIP());
 
   // init the MQTT connection
   client_sts.setServer(mqttData_sts.server_ip, atoi(mqttData_sts.server_port));

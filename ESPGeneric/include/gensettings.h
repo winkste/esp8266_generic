@@ -42,6 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_FW_IDENT         "/s/gen/fwident" //firmware identification
 #define MQTT_PUB_FW_VERSION       "/s/gen/fwversion" //firmware version
 #define MQTT_PUB_FW_DESC          "/s/gen/desc" //firmware description
+#define MQTT_PUB_OWN_IP           "/s/gen/ip"   // own ip address from station
 #define MQTT_PUB_DEV_ROOM         "/s/gen/room" //firmware room
 #define MQTT_PUB_CAP              "/s/gen/cap"  // send capability
 #define MQTT_PUB_TRACE            "/s/gen/trac" // send trace channel
