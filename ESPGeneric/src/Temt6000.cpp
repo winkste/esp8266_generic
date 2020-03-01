@@ -44,7 +44,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define DEFAULT_DATAPIN           0u  // A0
 
 #define DARK_LEVEL                300U
-#define PUB_THRESHOLD             50U
 
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
 #define MILLISEC_IN_SEC           1000l // milliseconds in seconds
@@ -53,7 +52,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_BRIGHTNESS       "/s/temt6000/raw" // raw sensor data in digits
 #define MQTT_PUB_BRIGHT_LEVEL     "/s/temt6000/level" // brightness level data
 #define MQTT_REPORT_INTERVAL      (2l * MILLISEC_IN_SEC) // 1 second between processing
-#define MQTT_THRESHOLD            25.0F
+#define MQTT_THRESHOLD            10.0F
 /****************************************************************************************/
 /* Local function like makros */
 
