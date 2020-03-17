@@ -30,3 +30,4 @@ sensorTest/Debug/src/DhtSensor.d
 *.bin
 *.elf
 *.bin
+*.DS_Store
