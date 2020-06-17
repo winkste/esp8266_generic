@@ -58,6 +58,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_TEST_DEVICE          0x15u
 #define CAPABILITY_MULTI_SENSE_RELAY    0x14u
 #define CAPABILITY_3D_PRINTER           0x13u
 #define CAPABILITY_NEOPIXELS            0x12u
@@ -512,7 +513,10 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
             break;
+        case CAPABILITY_TEST_DEVICE:
         default:
+            device_p = new GenSensor(trace_p, true);
+            deviceList_p->add(device_p);
             break;
     }
 

@@ -43,6 +43,14 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
 
+typedef enum 
+{
+    GOOD_COMM = 0,
+    FEEDBACK_ERROR,
+    NO_COMMUNICATION,
+    SIZE_COMM_EVENTS
+}comEvent_t;
+
 /****************************************************************************************/
 /* Class definition: */
 class GenSensor : public MqttDevice
@@ -54,6 +62,10 @@ class GenSensor : public MqttDevice
         /********************************************************************************/
         /* Public function definitions: */
         GenSensor(Trace *p_trace);
+        GenSensor(Trace *p_trace, bool mqttObserverActive_bol);
+        GenSensor(Trace *p_trace, bool mqttObserverActive_bol,
+                    uint16_t rebootThresholdOnComError_u16);
+        
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -67,13 +79,23 @@ class GenSensor : public MqttDevice
         uint32_t    publishData_u32;
         char        buffer_ca[100];
         char        mqttPayload[20];
-        uint16_t    healthTic_u16;
         uint32_t    prevTime_u32 = 0;
         uint32_t    reportCycleMSec_u32;
+
+        uint16_t    healthTic_u16;
+
+        uint16_t    feedbackHealthTic_u16;
+        bool        mqttObserverActive_bol;
+        uint16_t    mqttComErrorCounter_u16;
+        uint16_t    mqttGoodCommsCounter_u16;
+        bool        waitForFeedback_bol;
+        uint16_t    rebootThresholdOnComError_u16;
 
         /********************************************************************************/
         /* Private function definitions: */
         char* build_topic(const char *topic);
+        void ObserveCommunication(comEvent_t comEvent_en);
+        void ForceWatchDogReset(void);
         
     protected:
         /********************************************************************************/
