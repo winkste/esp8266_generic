@@ -61,25 +61,27 @@ class Pir : public MqttDevice
         /* Public function definitions: */
         Pir(Trace *p_trace);
         Pir(Trace *p_trace, uint8_t pirPin_u8);
-        Pir(Trace *p_trace, uint8_t pirPin_u8, uint8_t ledPin_u8);
+        Pir(Trace *p_trace, uint8_t pirPin_u8, bool pollingMode_bol);
+        Pir(Trace *p_trace, uint8_t pirPin_u8, bool pollingMode_bol, uint8_t ledPin_u8);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
         void Initialize();
         void Reconnect(PubSubClient *client_p, const char *dev_p);
-        void VerifyPirState(void);
+        void PollPirState(void);
         void ToggleRelay(void);
-        static void UpdatePirState();
+        static void PirSignalChangedIsr();
         static void SetSelf(Pir *mySelf_p);
         virtual
         ~Pir();
     private:
         /********************************************************************************/
         /* Private data definitions */ 
-        boolean pirState_bol          = false;
+        boolean motionDetected_bol    = false;
         boolean publishState_bol      = true;
         uint8_t pirPin_u8             = 0u;
         uint8_t ledPin_u8             = 0xffu;
+        boolean pollingMode_bol       = false;
         char buffer_ca[100];
         
         /********************************************************************************/

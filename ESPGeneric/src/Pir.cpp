@@ -46,7 +46,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PAYLOAD_MOTION       "ON"
 #define MQTT_PAYLOAD_NO_MOTION    "OFF"
 
-#define PIR_DEBOUNCE              400  // ms debouncing for the botton
+#define LED_PIN_UNUSED            0xFF
 
 /****************************************************************************************/
 /* Local function like makros */
@@ -72,12 +72,13 @@ uint8_t Pir::counterButton_u8       = 0;
 *//*-----------------------------------------------------------------------------------*/
 Pir::Pir(Trace *p_trace) : MqttDevice(p_trace)
 {
-    this->prevTime_u32      = 0;
-    this->publications_u16  = 0;
-    this->pirState_bol      = false;
-    this->publishState_bol  = true;
-    this->pirPin_u8         = DEFAULT_PIR_INPUT_PIN;
-    this->ledPin_u8         = 0xff; // not used      
+    this->prevTime_u32          = 0;
+    this->publications_u16      = 0;
+    this->motionDetected_bol    = false;
+    this->publishState_bol      = true;
+    this->pirPin_u8             = DEFAULT_PIR_INPUT_PIN;
+    this->ledPin_u8             = LED_PIN_UNUSED;  
+    this->pollingMode_bol       = false;   
 }
 
 /**---------------------------------------------------------------------------------------
@@ -88,14 +89,24 @@ Pir::Pir(Trace *p_trace) : MqttDevice(p_trace)
  * @param     pirPin_u8   pir pin selection
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-Pir::Pir(Trace *p_trace, uint8_t pirPin_u8) : MqttDevice(p_trace)
+Pir::Pir(Trace *p_trace, uint8_t pirPin_u8) : Pir(p_trace)
 {
-    this->prevTime_u32      = 0;
-    this->publications_u16  = 0;
-    this->pirState_bol      = false;
-    this->publishState_bol  = true;
-    this->pirPin_u8         = pirPin_u8;
-    this->ledPin_u8         = 0xff; // not used
+    this->pirPin_u8             = pirPin_u8;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for the pir sensor
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @param     p_trace           trace object for info and error messages
+ * @param     pirPin_u8         pir pin selection
+ * @param     pollingMode_bol   switch between ISR and polling mode, default = ISR
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+Pir::Pir(Trace *p_trace, uint8_t pirPin_u8, bool pollingMode_bol) 
+            : Pir(p_trace, pirPin_u8)
+{
+    this->pollingMode_bol = pollingMode_bol;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -104,18 +115,17 @@ Pir::Pir(Trace *p_trace, uint8_t pirPin_u8) : MqttDevice(p_trace)
  * @date      20 Okt. 2017
  * @param     p_trace     trace object for info and error messages
  * @param     pirPin_u8   pir pin selection
+ * @param     pollingMode_bol   switch between ISR and polling mode, default = ISR
  * @param     ledPin_u8   led pin, set to high if motion was detected
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-Pir::Pir(Trace *p_trace, uint8_t pirPin_u8, uint8_t ledPin_u8) : MqttDevice(p_trace)
+Pir::Pir(Trace *p_trace, uint8_t pirPin_u8, bool pollingMode_bol, uint8_t ledPin_u8) 
+            : Pir(p_trace, pirPin_u8, pollingMode_bol)
 {
-    this->prevTime_u32      = 0;
-    this->publications_u16  = 0;
-    this->pirState_bol      = false;
-    this->publishState_bol  = true;
-    this->pirPin_u8         = pirPin_u8;
-    this->ledPin_u8         = ledPin_u8;
+    this->ledPin_u8             = ledPin_u8;
 }
+
+
 
 /**---------------------------------------------------------------------------------------
  * @brief     Default destructor
@@ -139,10 +149,14 @@ void Pir::Initialize()
     p_trace->println(trace_INFO_MSG, "<<pir>>Pir initialized");
 
     pinMode(this->pirPin_u8, INPUT_PULLUP);
-    //digitalWrite(this->pirPin_u8, HIGH); // pull up to avoid interrupts without sensor
-    attachInterrupt(digitalPinToInterrupt(this->pirPin_u8), 
-                                            Pir::UpdatePirState, CHANGE);
-    if(0xff != this->ledPin_u8)
+
+    if(false == this->pollingMode_bol)
+    {
+        attachInterrupt(digitalPinToInterrupt(this->pirPin_u8), 
+                                            Pir::PirSignalChangedIsr, CHANGE);
+    }
+
+    if(LED_PIN_UNUSED != this->ledPin_u8)
     {
       pinMode(this->ledPin_u8, OUTPUT);
       digitalWrite(this->ledPin_u8, HIGH);
@@ -211,14 +225,16 @@ bool Pir::ProcessPublishRequests(PubSubClient *client)
     
     if(true == this->isConnected_bol)
     {
-        //VerifyPirState();
-        // check if state has changed, than publish this state
+        if(true == this->pollingMode_bol)
+        {
+            PollPirState();
+        }
         if(true == publishState_bol)
         {
             p_trace->print(trace_INFO_MSG, "<<pir>> publish requested state: ");
             p_trace->print(trace_PURE_MSG, MQTT_PUB_PIR_STATE);
             p_trace->print(trace_PURE_MSG, "  :  ");
-            if(true == this->pirState_bol)
+            if(true == this->motionDetected_bol)
             {
               ret = client->publish(build_topic(MQTT_PUB_PIR_STATE), 
                                         MQTT_PAYLOAD_MOTION, true);
@@ -244,6 +260,91 @@ bool Pir::ProcessPublishRequests(PubSubClient *client)
     return ret; 
 };
 
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the external pir input and updates the value
+ *              of the state variable. If the value changed the corresponding
+ *              set function is called. Debouncing is also handled by this function
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Pir::SetSelf(Pir *mySelf_p)
+{
+    Pir::mySelf_p = mySelf_p;
+} 
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function polls the PIR pin state and compares it with  
+ *            the internal variable. If they don't match, it requests a publication.
+ *            This function can either be used as for polling mode or as a double
+ *            check in the publish request function to check the PIR pin state.
+ * @author    winkste
+ * @date      01 Jul 2018
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void Pir::PollPirState(void)
+{
+    bool pinState_bol;
+
+    pinState_bol = (HIGH == digitalRead(Pir::mySelf_p->pirPin_u8));
+
+    if(pinState_bol != this->motionDetected_bol)
+    {
+        // state has changed, trigger reaction
+        this->motionDetected_bol = pinState_bol;
+        this->publishState_bol = true; 
+        if(true == this->motionDetected_bol)
+        {
+            this->p_trace->println(trace_INFO_MSG, 
+                                "<<pir>>Motion polling: motion detected");
+            if(LED_PIN_UNUSED != this->ledPin_u8)
+            {
+                digitalWrite(this->ledPin_u8, LOW);
+            }
+        }
+        else
+        {
+            this->p_trace->println(trace_INFO_MSG,  
+                                "<<pir>>Motion verification: no motion detected");
+            if(LED_PIN_UNUSED != this->ledPin_u8)
+            {
+                digitalWrite(this->ledPin_u8, HIGH);
+            } 
+        }   
+    }
+} 
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the state changed interrupt of the PIR pin.
+ * @author    winkste
+ * @date      20 Okt. 2017
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+ICACHE_RAM_ATTR void Pir::PirSignalChangedIsr() 
+{
+    int32_t pinState_s32;
+
+    pinState_s32 = digitalRead(Pir::mySelf_p->pirPin_u8);
+    Pir::mySelf_p->publishState_bol = true; 
+    Pir::mySelf_p->motionDetected_bol = (HIGH == pinState_s32);
+
+    // update the corresponding led output signal
+    if(HIGH == pinState_s32)
+    {
+        if(LED_PIN_UNUSED != Pir::mySelf_p->ledPin_u8)
+        {
+            digitalWrite(Pir::mySelf_p->ledPin_u8, LOW);
+        }                                              
+    }
+    else
+    {
+        if(LED_PIN_UNUSED != Pir::mySelf_p->ledPin_u8)
+        {
+            digitalWrite(Pir::mySelf_p->ledPin_u8, HIGH);
+        }                                            
+    }
+}
+
 /****************************************************************************************/
 /* Private functions: */
 
@@ -259,113 +360,5 @@ char* Pir::build_topic(const char *topic)
 {
   sprintf(buffer_ca, "std/%s%s", this->dev_p, topic);
   return buffer_ca;
-}
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function handles the external pir input and updates the value
- *              of the state variable. If the value changed the corresponding
- *              set function is called. Debouncing is also handled by this function
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Pir::SetSelf(Pir *mySelf_p)
-{
-    Pir::mySelf_p = mySelf_p;
-} 
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function checks the PIR pin state and compares it with the 
- *            the internal variable. If they don't match, it requests a publication.
- *            This function can either be used as for polling mode or as a double
- *            check in the publish request function to check the PIR pin state.
- * @author    winkste
- * @date      01 Jul 2018
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-void Pir::VerifyPirState(void)
-{
-    if((HIGH == digitalRead(this->pirPin_u8)) && (true == this->pirState_bol))
-    {
-        // state match, nothing to do
-    }
-    if((LOW == digitalRead(this->pirPin_u8)) && (false == this->pirState_bol))
-    {
-        // state match, nothing to do
-    }
-    else if((HIGH == digitalRead(this->pirPin_u8)) && (false == this->pirState_bol))
-    {
-        this->pirState_bol = true;
-        this->p_trace->println(trace_INFO_MSG, 
-                                "<<pir>>Motion verification: motion detected");
-        this->publishState_bol = true;  
-        if(0xff != this->ledPin_u8)
-        {
-            digitalWrite(this->ledPin_u8, LOW);
-        }
-    }
-    else if((LOW == digitalRead(this->pirPin_u8)) && (true == this->pirState_bol))
-    {
-        this->pirState_bol = false;
-        this->p_trace->println(trace_INFO_MSG,  
-                                "<<pir>>Motion verification: no motion detected");
-        this->publishState_bol = true; 
-        if(0xff != this->ledPin_u8)
-        {
-        digitalWrite(this->ledPin_u8, HIGH);
-        }                                            
-    }
-    else
-    {
-        this->p_trace->println(trace_INFO_MSG, 
-                                "<<pir>>Motion verification: unexpected state");
-    }
-
-} 
-
-/**---------------------------------------------------------------------------------------
- * @brief     This function handles the external button input and updates the value
- *              of the simpleLightState_bolst variable. If the value changed the corresponding
- *              set function is called. Debouncing is also handled by this function
- * @author    winkste
- * @date      20 Okt. 2017
- * @return    n/a
-*//*-----------------------------------------------------------------------------------*/
-ICACHE_RAM_ATTR void Pir::UpdatePirState() 
-{
-  // check if we changed PIR state
-  if((HIGH == digitalRead(Pir::mySelf_p->pirPin_u8)) /*&& (false == Pir::mySelf_p->pirState_bol)*/)
-  {
-    Pir::mySelf_p->pirState_bol = true;
-    Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
-                                                "<<pir>>Motion detected");
-    Pir::mySelf_p->publishState_bol = true;  
-    if(0xff != Pir::mySelf_p->ledPin_u8)
-    {
-      digitalWrite(Pir::mySelf_p->ledPin_u8, LOW);
-    }                                              
-  }
-  else if((LOW == digitalRead(Pir::mySelf_p->pirPin_u8)) /*&& (true == Pir::mySelf_p->pirState_bol)*/)
-  {
-    Pir::mySelf_p->pirState_bol = false;
-    Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
-                                                "<<pir>>No Motion detected");
-    Pir::mySelf_p->publishState_bol = true; 
-    if(0xff != Pir::mySelf_p->ledPin_u8)
-    {
-      digitalWrite(Pir::mySelf_p->ledPin_u8, HIGH);
-    }                                            
-  }
-  else
-  {
-    Pir::mySelf_p->pirState_bol = false;  
-    Pir::mySelf_p->publishState_bol = true; 
-    Pir::mySelf_p->p_trace->println(trace_INFO_MSG, 
-                                                "<<pir>>unexpeted PIR state detected");
-    if(0xff != Pir::mySelf_p->ledPin_u8)
-    {
-      digitalWrite(Pir::mySelf_p->ledPin_u8, HIGH);
-    } 
-  }
 }
 
