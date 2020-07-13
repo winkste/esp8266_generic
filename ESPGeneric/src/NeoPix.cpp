@@ -54,6 +54,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_PUB_RGB              "color" // state message for rgb state
 #define MQTT_SUB_BRIGHTNESS       "brightness" // command message for button commands
 #define MQTT_PUB_BRIGHTNESS       "brightness" // state message for brightness
+#define MQTT_SUB_ALARM            "alarm" // command message for alarm activation
 #define MQTT_DEFAULT_CHAN         "neo_one"
 #define MQTT_PAYLOAD_CMD_ON       "ON"
 #define MQTT_PAYLOAD_CMD_OFF      "OFF"
@@ -83,10 +84,12 @@ NeoPix::NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, const char* neoChan_pch)
     this->prevTime_u32          = 0U;
     this->publications_u16      = 0U;
     this->lightState_bol        = false;
+    this->mode_en               = NORMAL_MODE;
     this->neoStateChanged_bol   = true;
     this->channel_pch           = neoChan_pch; 
     this->gpio_pcl              = gpio_pcl;
     this->brightness_u8         = 20U;   // start with 20% brightness
+    this->alarmRgbIdx_u8        = 0U;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -140,13 +143,15 @@ void NeoPix::Reconnect(PubSubClient *client_p, const char *dev_p)
         p_trace->println(trace_PURE_MSG, " reconnected");
         // ... and resubscribe
         // toggle light 
-        this->Subscribe_vd(client_p, MQTT_SUB_TOGGLE);
+        this->Subscribe_vd(client_p, BuildReceiveTopic_pch(MQTT_SUB_TOGGLE));
         // change light state digital with payload
-        this->Subscribe_vd(client_p, MQTT_SUB_SWITCH);  
+        this->Subscribe_vd(client_p, BuildReceiveTopic_pch(MQTT_SUB_SWITCH));  
         // command to set brightness of light 
-        this->Subscribe_vd(client_p, MQTT_SUB_BRIGHTNESS); 
+        this->Subscribe_vd(client_p, BuildReceiveTopic_pch(MQTT_SUB_BRIGHTNESS)); 
         // command to set RGB of light 
-        this->Subscribe_vd(client_p, MQTT_SUB_RGB);
+        this->Subscribe_vd(client_p, BuildReceiveTopic_pch(MQTT_SUB_RGB));
+        // command to activate the alarm mode
+        this->Subscribe_vd(client_p, BuildReceiveTopicBCast_pch(MQTT_SUB_ALARM));
     }
     else
     {
@@ -176,7 +181,10 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
             p_trace->print(trace_PURE_MSG, "<<dimLight>> mqtt callback: ");
             p_trace->println(trace_PURE_MSG, p_topic);
-            this->Toggle_vd();
+            if(NORMAL_MODE == this->mode_en)
+            {
+                this->Toggle_vd();
+            }
         }
         // execute command to switch on/off the light
         else if (String(BuildReceiveTopic_pch(MQTT_SUB_SWITCH)).equals(p_topic)) 
@@ -189,13 +197,19 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             // test if the payload is equal to "ON" or "OFF"
             if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
             {
-                this->lightState_bol = true;
-                this->Set_vd();  
+                if(NORMAL_MODE == this->mode_en)
+                {
+                    this->lightState_bol = true;
+                    this->Set_vd();
+                }  
             }
             else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
             {
-                this->lightState_bol = false;
-                this->Set_vd();
+                if(NORMAL_MODE == this->mode_en)
+                {   
+                    this->lightState_bol = false;
+                    this->Set_vd();
+                }
             }
             else
             {
@@ -249,6 +263,38 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
 
             this->Set_vd();  
         }
+        // execute command to activate or deactivate the alarm
+        else if(String(BuildReceiveTopicBCast_pch(MQTT_SUB_ALARM)).equals(p_topic))
+        {
+            p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+            p_trace->println(trace_PURE_MSG, " mqtt callback: ");
+            p_trace->print(trace_PURE_MSG, p_topic);
+            p_trace->print(trace_PURE_MSG, " : ");
+            p_trace->println(trace_PURE_MSG, p_payload);
+            // test if the payload is equal to "ON" or "OFF"
+            if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
+            {
+                this->mode_en = ALARM_MODE;  
+            }
+            else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
+            {
+                if(ALARM_MODE == this->mode_en)
+                {
+                    // if we switch from alarm to normal mode, 
+                    //ensure that the light turned of
+                    this->lightState_bol = false;
+                    this->Set_vd();
+                }
+                this->mode_en = NORMAL_MODE;
+            }
+            else
+            {
+                p_trace->print(trace_ERROR_MSG, this->deviceName_ccp);
+                p_trace->println(trace_PURE_MSG, " unexpected payload: "); 
+                p_trace->println(trace_PURE_MSG, p_payload);
+            } 
+
+        }
     }
     else
     {
@@ -271,6 +317,8 @@ bool NeoPix::ProcessPublishRequests(PubSubClient *client)
     
     if(true == this->isConnected_bol)
     {
+        CheckModesForTimingEvents_vd();
+
         // check if state has changed, than publish this state
         if(true == neoStateChanged_bol)
         {
@@ -309,14 +357,15 @@ bool NeoPix::ProcessPublishRequests(PubSubClient *client)
 *//*-----------------------------------------------------------------------------------*/
 void NeoPix::Set_vd(void)
 {
-  if(false == this->lightState_bol) 
-  {   
-    this->TurnOff_vd();  
-  }
-  else
-  {   
-    this->TurnOn_vd();
-  }
+
+    if(false == this->lightState_bol) 
+    {   
+        this->TurnOff_vd();  
+    }
+    else
+    {   
+        this->TurnOn_vd();
+    }
 }
 
 /****************************************************************************************/
@@ -397,6 +446,18 @@ char* NeoPix::BuildReceiveTopic_pch(const char *topic)
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     This function helps to build the broadcast topic.
+ * @author    winkste
+ * @date      07. Jul. 2020
+ * @param     topic       pointer to topic string
+ * @return    combined topic as char pointer, it uses buffer_stca to store the topic
+*//*-----------------------------------------------------------------------------------*/
+char* NeoPix::BuildReceiveTopicBCast_pch(const char *topic) 
+{
+    return (Utils::BuildReceiveTopicBCast(topic, this->topicBuff_cha));
+}
+
+/**---------------------------------------------------------------------------------------
  * @brief     This function publishes a message
  * @author    winkste
  * @date      24 Sep. 2018
@@ -425,22 +486,79 @@ boolean NeoPix::PublishMessage_bol(PubSubClient *client_p, const char *message_c
 }
 
 /**---------------------------------------------------------------------------------------
- * @brief     This function publishes a message
+ * @brief     This function subscribes a message
  * @author    winkste
  * @date      24 Sep. 2018
  * @param     client_p       pointer to pub sub client
- * @param     topic_ccp      topic fragment
+ * @param     topic_ccp      complete topic
  * @return    N/A
 *//*-----------------------------------------------------------------------------------*/
 void NeoPix::Subscribe_vd(PubSubClient *client_p, const char *topic_ccp)
 {
-    const char *localTopic_cpch = BuildReceiveTopic_pch(topic_ccp);
-
-    client_p->subscribe(localTopic_cpch);  
+    client_p->subscribe(topic_ccp);  
     client_p->loop();
     p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
     p_trace->print(trace_PURE_MSG, "subscribe message: ");
-    p_trace->println(trace_PURE_MSG, localTopic_cpch);
+    p_trace->println(trace_PURE_MSG, topic_ccp);
 }
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function executes time dependent features of modes
+ * @author    winkste
+ * @date      10. Jul. 2020
+ * @return    N/A
+*//*-----------------------------------------------------------------------------------*/
+void NeoPix::CheckModesForTimingEvents_vd()
+{
+    switch (this->mode_en)
+    {
+    case ALARM_MODE:
+        ControlAlarmSignal_vd();
+        break;
+    case UNKNOWN_MODE:
+        // unexpected mode, change back to normal mode here
+        this->mode_en = NORMAL_MODE;
+        break;
+    case NORMAL_MODE:
+    default:
+        break;
+    }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function toggles the alarm lights
+ * @author    winkste
+ * @date      07. Jul. 2020
+ * @return    N/A
+*//*-----------------------------------------------------------------------------------*/
+void NeoPix::ControlAlarmSignal_vd()
+{
+    if(ALARM_MODE == this->mode_en)
+    {
+        if(    (this->prevTime_u32 + ALARM_TOGGLE_TIME) < millis() 
+            || (0 == this->prevTime_u32))
+        {
+            this->pixels_pcl->setPixelColor(0, 
+                                    this->ALARM_RGB[this->alarmRgbIdx_u8][0], 
+                                    this->ALARM_RGB[this->alarmRgbIdx_u8][1], 
+                                    this->ALARM_RGB[this->alarmRgbIdx_u8][2]);
+            this->pixels_pcl->setBrightness(ALARM_BRIGHTNESS);
+            this->pixels_pcl->show(); // This sends the updated pixel color to the hardware.
+
+            this->alarmRgbIdx_u8++;
+            this->alarmRgbIdx_u8 = this->alarmRgbIdx_u8 % 2U;
+        }
+
+        // change standard light states to off if on and notify the broaker
+        if(true == this->lightState_bol)
+        {
+            this->lightState_bol = false;
+            p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
+            p_trace->println(trace_PURE_MSG, "light turned from on to alarm");
+            this->neoStateChanged_bol = true;
+        }
+    }  
+}
+
 
 

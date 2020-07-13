@@ -164,6 +164,20 @@ char* Utils::BuildReceiveTopic(const char *dev_p, const char *channel_p,
 }
 
 /**---------------------------------------------------------------------------------------
+ * @brief     This function helps to build the broad cast topic
+ * @author    winkste
+ * @date      07 Jul. 2020
+ * @param     topic_p     pointer to topic string
+ * @param     buffer_p    pointer to result buffer string
+ * @return    combined topic as char pointer, it uses buffer_p to store the topic
+*//*-----------------------------------------------------------------------------------*/
+char* Utils::BuildReceiveTopicBCast(const char *topic_p, char *buffer_p) 
+{
+  sprintf(buffer_p, "std/bcast/r/%s", topic_p);
+  return buffer_p;
+}
+
+/**---------------------------------------------------------------------------------------
  * @brief     This function calculates the logarithm digits value (0-1023) based on the 
  *              linear  input percentage (0-100%).
  * @author    winkste

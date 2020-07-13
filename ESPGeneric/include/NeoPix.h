@@ -50,6 +50,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
 
+typedef enum state_tag
+{
+    NORMAL_MODE = 0,
+    ALARM_MODE,
+    UNKNOWN_MODE
+}state_t;
+
 /****************************************************************************************/
 /* Class definition: */
 class NeoPix : public MqttDevice
@@ -72,6 +79,7 @@ class NeoPix : public MqttDevice
         /********************************************************************************/
         /* Private data definitions */ 
         boolean             lightState_bol      = false;
+        state_t             mode_en             = NORMAL_MODE;
         boolean             neoStateChanged_bol = true;
         uint8_t             brightness_u8       = 20; 
         char                topicBuff_cha[100];
@@ -87,6 +95,11 @@ class NeoPix : public MqttDevice
         uint8_t             green_u8            = defaultGreen_u8c;
         uint8_t             blue_u8             = defaultBlue_u8c;
         Adafruit_NeoPixel   *pixels_pcl;
+
+        const uint8_t       ALARM_RGB[2][3]     = {{213U, 0U, 0U},{48U, 79U, 254U}};
+        uint8_t             alarmRgbIdx_u8      = 0U;
+        const uint32_t      ALARM_TOGGLE_TIME   = 600;
+        const uint8_t       ALARM_BRIGHTNESS    = 90U;
         
         /********************************************************************************/
         /* Private function definitions: */
@@ -95,8 +108,11 @@ class NeoPix : public MqttDevice
         void Set_vd(void);
         void Toggle_vd(void);
         char* BuildReceiveTopic_pch(const char *topic);
+        char* BuildReceiveTopicBCast_pch(const char *topic);
         boolean PublishMessage_bol(PubSubClient *client_p, const char *message_cp, const char * payload_ccp);
         void Subscribe_vd(PubSubClient *client_p, const char *topic_ccp);
+        void CheckModesForTimingEvents_vd();
+        void ControlAlarmSignal_vd();
     protected:
         /********************************************************************************/
         /* Protected data definitions */
@@ -106,5 +122,5 @@ class NeoPix : public MqttDevice
 
 };
 
-#endif /* SINGLERELAY_H_ */
+#endif /* NEOPIX */
 
