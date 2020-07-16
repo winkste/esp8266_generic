@@ -32,12 +32,13 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Include Interfaces */
+#include "DhtSensor.h" 
+
 #include <PubSubClient.h>
 #include <DHT.h>
 #include <ESP8266WiFi.h>
 
-#include "MqttDevice.h"
-#include "DhtSensor.h"         
+#include "MqttDevice.h"        
 #include "Trace.h"
 #include "PubSubClient.h"
 
@@ -219,61 +220,17 @@ void DhtSensor::CallbackMqtt(PubSubClient *client, char* p_topic, String p_paylo
 *//*-----------------------------------------------------------------------------------*/
 bool DhtSensor::ProcessPublishRequests(PubSubClient *client)
 {
-    String tPayload;
-    boolean ret = false;
+    boolean ret_bol = true;
+    uint32_t actualTime_u32 = millis();
 
-    if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
-    {      
-        // the temperature and humidity publication is time interval based
-        if(true == this->isConnected_bol)
-        {
-            p_trace->println(trace_INFO_MSG, "DHT Sensor processes publish request");
-            this->prevTime_u32 = millis();
-            p_trace->println(trace_INFO_MSG, "reading temperature and humidity from DHT");
-
-            // check the internal ADC
-            //out = (unsigned int) analogRead(A0);
-
-            // checking the DHT values
-            this->TurnDHTOn();
-            this->humidity_f32 = dht_p->readHumidity();
-            this->temperature_f32 = dht_p->readTemperature();
-            TurnDHTOff();
-
-            // apply correction factor to both measurements
-            this->humidity_f32 = this->humidity_f32 * HUMIDITY_CORR_FACTOR;
-            this->temperature_f32 = this->temperature_f32 * TEMPERATURE_CORR_FACTOR;
-            
-            // Check if any reads failed and exit
-            if (isnan(this->humidity_f32) || isnan(this->temperature_f32)) 
-            {
-                p_trace->println(trace_ERROR_MSG, "Failed to read from DHT sensor!");
-            }
-            else
-            {      
-                p_trace->print(trace_INFO_MSG, "<<mqtt>> publish temperature: ");
-                p_trace->print(trace_PURE_MSG, MQTT_PUB_TEMPERATURE);
-                p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_TEMPERATURE), 
-                                        f2s(this->temperature_f32, 2), true);
-                p_trace->println(trace_PURE_MSG, f2s(this->temperature_f32, 2));
-                
-                p_trace->print(trace_INFO_MSG, "<<mqtt>> publish humidity: ");
-                p_trace->print(trace_PURE_MSG, MQTT_PUB_HUMIDITY);
-                p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_HUMIDITY), 
-                                        f2s(this->humidity_f32, 2), true);
-                p_trace->println(trace_PURE_MSG, f2s(this->humidity_f32, 2));  
-            }
-        } 
-        else
-        {
-            p_trace->println(trace_ERROR_MSG, 
-                                  "connection failure in dht ProcessPublishRequests "); 
-        }
+    if(    (this->prevTime_u32 + this->STATE_LOOP_CYCLE < actualTime_u32) 
+        || (0 == this->prevTime_u32))
+    {
+        this->prevTime_u32 = actualTime_u32;
+        ret_bol = ret_bol && ProcessSensorStateMachine(client);
     }
 
-    return ret;  
+    return(ret_bol);
 }
 
 /****************************************************************************************/
@@ -310,7 +267,7 @@ char* DhtSensor::f2s(float f, int p)
 /**---------------------------------------------------------------------------------------
  * @brief     This function turns on the DHT power pin and waits for a dedicated time.
  * @author    winkste
- * @date      20 Okt. 2017
+ * @date      13 Jul. 2020
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::TurnDHTOn() 
@@ -320,17 +277,12 @@ void DhtSensor::TurnDHTOn()
         this->pwrPin_p->DigitalWrite(HIGH);
         p_trace->println(trace_INFO_MSG, "<<dht>>dht turned on");
     }
-    
-    delay(500);
-    // start dht
-    dht_p->begin(); 
-    delay(500);  
 }
 
 /**---------------------------------------------------------------------------------------
  * @brief     This function turns off the DHT power pin.
  * @author    winkste
- * @date      20 Okt. 2017
+ * @date      13 Jul. 2020
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::TurnDHTOff() 
@@ -340,6 +292,144 @@ void DhtSensor::TurnDHTOff()
         this->pwrPin_p->DigitalWrite(LOW);
         p_trace->println(trace_INFO_MSG, "<<dht>>dht turned off");
     }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function checks if we have to start a new measurement cycle
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void DhtSensor::CheckForMeasRequest(void)
+{
+    uint32_t actualTime_u32 = millis();
+
+    if(    (this->lastReportTime_u32 + this->reportCycleMSec_u32 < actualTime_u32) 
+        || (0 == this->lastReportTime_u32))
+    {
+        this->lastReportTime_u32 = actualTime_u32;
+        this->state_en = DHTSENSOR_MEAS_REQ;    
+    } 
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function starts the sensor driver module
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void DhtSensor::StartDhtSensorDriver(void)
+{
+    dht_p->begin();    
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function reads the data from the sensor
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+void DhtSensor::ReadDataFromSensor(void)
+{
+    this->humidity_f32 = dht_p->readHumidity();
+    this->temperature_f32 = dht_p->readTemperature();
+    TurnDHTOff();  
+
+    // apply correction factor to both measurements
+    this->humidity_f32 = this->humidity_f32 * HUMIDITY_CORR_FACTOR;
+    this->temperature_f32 = this->temperature_f32 * TEMPERATURE_CORR_FACTOR;
+
+    // Check if any reads failed and exit
+    if (isnan(this->humidity_f32) || isnan(this->temperature_f32)) 
+    {
+        p_trace->println(trace_ERROR_MSG, "Failed to read from DHT sensor!");
+        this->humidity_f32 = 55.0F;
+        this->temperature_f32 = 25.0F;
+    }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function publishes the data to the broker
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @param     client     mqtt client object
+ * @return    true if transmission was successful
+*//*-----------------------------------------------------------------------------------*/
+boolean DhtSensor::PublishData(PubSubClient *client)
+{
+    String tPayload;
+    boolean ret_bol = true;
+
+    if(true == this->isConnected_bol)
+    {
+        p_trace->print(trace_INFO_MSG, "<<mqtt>> publish temperature: ");
+        p_trace->print(trace_PURE_MSG, MQTT_PUB_TEMPERATURE);
+        p_trace->print(trace_PURE_MSG, "  :  ");
+        ret_bol = ret_bol && client->publish(build_topic(MQTT_PUB_TEMPERATURE), 
+                            f2s(this->temperature_f32, 2), true);
+        p_trace->println(trace_PURE_MSG, f2s(this->temperature_f32, 2));
+
+        p_trace->print(trace_INFO_MSG, "<<mqtt>> publish humidity: ");
+        p_trace->print(trace_PURE_MSG, MQTT_PUB_HUMIDITY);
+        p_trace->print(trace_PURE_MSG, "  :  ");
+        ret_bol = ret_bol && client->publish(build_topic(MQTT_PUB_HUMIDITY), 
+                            f2s(this->humidity_f32, 2), true);
+        p_trace->println(trace_PURE_MSG, f2s(this->humidity_f32, 2)); 
+    }
+    else
+    {
+        ret_bol = false;
+        p_trace->println(trace_ERROR_MSG, 
+                            "connection failure in dht ProcessPublishRequests "); 
+    }
+    this->state_en = DHTSENSOR_MEAS_PUBLISHED;
+
+    return(ret_bol);
+} 
+
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the sensor state machine for a measurement interval
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @param     client     mqtt client object
+ * @return    true if transmission was successful
+*//*-----------------------------------------------------------------------------------*/
+boolean DhtSensor::ProcessSensorStateMachine(PubSubClient *client)
+{
+    boolean ret_bol = true;
+
+    switch(this->state_en)
+    {
+        case DHTSENSOR_OFF:
+            CheckForMeasRequest();
+            break;
+        case DHTSENSOR_MEAS_REQ:
+            TurnDHTOn();
+            this->state_en = DHTSENSOR_POWER_STARTED;
+            break;
+        case DHTSENSOR_POWER_STARTED:
+            StartDhtSensorDriver();
+            this->state_en = DHTSENSOR_DRIVER_STARTED;
+            break;
+        case DHTSENSOR_DRIVER_STARTED:
+            ReadDataFromSensor();
+            this->state_en = DHTSENSOR_MEAS_COMPLETED;
+            break;
+        case DHTSENSOR_MEAS_COMPLETED:
+            ret_bol = ret_bol && PublishData(client);
+            break;
+        case DHTSENSOR_MEAS_PUBLISHED:
+            this->state_en = DHTSENSOR_OFF;
+            break;
+        case DHTSENSOR_UNKNOWN_STATE:
+        default:
+            this->state_en = DHTSENSOR_OFF;
+            p_trace->println(trace_ERROR_MSG, "<<dht>> DHTSENSOR_UNKNOWN_STATE ");
+            break;
+    }
+
+    return(ret_bol);
 }
 
 /**---------------------------------------------------------------------------------------

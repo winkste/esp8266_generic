@@ -50,12 +50,12 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
 
-typedef enum state_tag
+typedef enum neoPixMode_tag
 {
     NORMAL_MODE = 0,
     ALARM_MODE,
     UNKNOWN_MODE
-}state_t;
+}neoPixMode_t;
 
 /****************************************************************************************/
 /* Class definition: */
@@ -79,7 +79,7 @@ class NeoPix : public MqttDevice
         /********************************************************************************/
         /* Private data definitions */ 
         boolean             lightState_bol      = false;
-        state_t             mode_en             = NORMAL_MODE;
+        neoPixMode_t        mode_en             = NORMAL_MODE;
         boolean             neoStateChanged_bol = true;
         uint8_t             brightness_u8       = 20; 
         char                topicBuff_cha[100];

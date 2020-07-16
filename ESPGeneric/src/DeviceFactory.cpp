@@ -427,7 +427,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             device_p = new DhtSensor(trace_p, MS_DHT_OUT_DATA_PIN, gpio_p, MS_DHT_REPORT_CYCLE_TIME);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
             deviceList_p->add(device_p);
-            pirDevice_p = new Pir(trace_p, MS_PIR_INPUT_PIN);
+            pirDevice_p = new Pir(trace_p, MS_PIR_INPUT_PIN, false);
             pirDevice_p->SetSelf(pirDevice_p);
             device_p = pirDevice_p;
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");

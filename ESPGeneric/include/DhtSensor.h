@@ -48,6 +48,16 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
+typedef enum state_tag
+{
+    DHTSENSOR_OFF              = 0,
+    DHTSENSOR_MEAS_REQ,
+    DHTSENSOR_POWER_STARTED,
+    DHTSENSOR_DRIVER_STARTED,
+    DHTSENSOR_MEAS_COMPLETED,
+    DHTSENSOR_MEAS_PUBLISHED,
+    DHTSENSOR_UNKNOWN_STATE
+}state_t;
 
 /****************************************************************************************/
 /* Class definition: */
@@ -86,6 +96,10 @@ class DhtSensor : public MqttDevice
         uint32_t    reportCycleMSec_u32;
         uint8_t     dhtId_u8;
 
+        state_t     state_en = DHTSENSOR_OFF;
+        const uint32_t STATE_LOOP_CYCLE = 500;
+        uint32_t    lastReportTime_u32 = 0;
+
         /********************************************************************************/
         /* Private function definitions: */
         char* build_topic(const char *topic);
@@ -97,8 +111,13 @@ class DhtSensor : public MqttDevice
         /********************************************************************************/
         /* Protected function definitions: */
         char *f2s(float f, int p);
-        void TurnDHTOn();
-        void TurnDHTOff();
+        void TurnDHTOn(void);
+        void TurnDHTOff(void);
+        void CheckForMeasRequest(void);
+        void StartDhtSensorDriver(void);
+        void ReadDataFromSensor(void);
+        boolean PublishData(PubSubClient *client);
+        boolean ProcessSensorStateMachine(PubSubClient *client);
 
 };
 
