@@ -36,6 +36,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #include "MqttDevice.h"        
 #include "Trace.h"
 #include "PubSubClient.h"
+#include "Utils.h"
 
 #include "Temt6000.h" 
 
@@ -43,16 +44,15 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define DEFAULT_DATAPIN           0u  // A0
 
-#define DARK_LEVEL                300U
+#define DARK_LEVEL                6U
 
 #define MICROSEC_IN_SEC           1000000l // microseconds in seconds
 #define MILLISEC_IN_SEC           1000l // milliseconds in seconds
-#define WARM_UP_TIME              500   // wait 500 milliseconds
 
-#define MQTT_PUB_BRIGHTNESS       "/s/temt6000/raw" // raw sensor data in digits
-#define MQTT_PUB_BRIGHT_LEVEL     "/s/temt6000/level" // brightness level data
+#define MQTT_PUB_BRIGHTNESS       "s/temt6000/raw" // raw sensor data in digits
+#define MQTT_PUB_BRIGHT_LEVEL     "s/temt6000/level" // brightness level data
 #define MQTT_REPORT_INTERVAL      (2l * MILLISEC_IN_SEC) // 1 second between processing
-#define MQTT_THRESHOLD            10.0F
+#define SENSOR_AVERAGES           10U
 /****************************************************************************************/
 /* Local function like makros */
 
@@ -82,6 +82,9 @@ Temt6000::Temt6000(Trace *p_trace) : MqttDevice(p_trace)
     this->brightness_f32        = 0.0F;
     this->brightId_u8           = 0U;
     this->reportCycleMSec_u32   = MQTT_REPORT_INTERVAL;
+
+    this->avgCnt_u16            = 0U;
+    this->avgData_32            = 0;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -195,50 +198,17 @@ void Temt6000::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payloa
 *//*-----------------------------------------------------------------------------------*/
 bool Temt6000::ProcessPublishRequests(PubSubClient *client)
 {
-    String tPayload;
-    boolean ret = false;
+    boolean ret_bol = true;
+    uint32_t actualTime_u32 = millis();
 
-
-    if(this->prevTime_u32 + this->reportCycleMSec_u32 < millis() || this->prevTime_u32 == 0)
-    {      
-        if(true == this->isConnected_bol)
-        {
-            p_trace->println(trace_INFO_MSG, "<<temt6000>> processes publish request");
-            this->prevTime_u32 = millis();
-            p_trace->println(trace_INFO_MSG, "<<temt6000>> reading brightness");
-
-            this->ReadData();
-            
-            this->ProcessBrightness();
-
-            if((this->level_u8 != this->lastLevel_u8) || 
-                (abs(this->brightness_f32 - this->lastBrightness_f32) > MQTT_THRESHOLD))
-            {
-                this->lastLevel_u8 = this->level_u8;
-                this->lastBrightness_f32 = this->brightness_f32;
-                p_trace->print(trace_INFO_MSG, "<<temt6000>> publish brithness: ");
-                p_trace->print(trace_PURE_MSG, MQTT_PUB_BRIGHTNESS);
-                p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_BRIGHTNESS), 
-                                        f2s(this->rawData_u16, 2), true);
-                p_trace->println(trace_PURE_MSG, f2s(this->rawData_u16, 2));
-                
-                p_trace->print(trace_INFO_MSG, "<<temt6000>> publish level: ");
-                p_trace->print(trace_PURE_MSG, MQTT_PUB_BRIGHT_LEVEL);
-                p_trace->print(trace_PURE_MSG, "  :  ");
-                ret = client->publish(build_topic(MQTT_PUB_BRIGHT_LEVEL), 
-                                        this->level_chrp, true);
-                p_trace->println(trace_PURE_MSG, this->level_chrp);
-            } 
-                   
-        } 
-        else
-        {
-            p_trace->println(trace_ERROR_MSG, 
-                    "<<temt6000>> connection failure in dht ProcessPublishRequests "); 
-        }
+    if(    (this->prevTime_u32 + this->STATE_LOOP_CYCLE < actualTime_u32) 
+        || (0 == this->prevTime_u32))
+    {
+        this->prevTime_u32 = actualTime_u32;
+        ret_bol = ret_bol && ProcessSensorStateMachine(client);
     }
-    return ret;  
+
+    return(ret_bol);
 }
 
 /****************************************************************************************/
@@ -267,30 +237,19 @@ char* Temt6000::build_topic(const char *topic)
 
 /****************************************************************************************/
 /* Protected functions: */
-/**--------------------------------------------------------------------------------------
- * @brief     This function converts a float value to a string
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function checks if we have to start a new measurement cycle
  * @author    winkste
- * @date      20 Okt. 2017
- * @param     f is the float to turn into a string
- * @param     p is the precision (number of decimals)
- * @return    return a string representation of the float
+ * @date      13 Jul. 2020
+ * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-char* Temt6000::f2s(float f, int p)
+void Temt6000::CheckForMeasRequest(void)
 {
-  char * pBuff;                         // use to remember which part of the buffer to use for dtostrf
-  const int iSize = 10;                 // number of buffers, one for each float before wrapping around
-  static char sBuff[iSize][20];         // space for 20 characters including NULL terminator for each float
-  static int iCount = 0;                // keep a tab of next place in sBuff to use
-  pBuff = sBuff[iCount];                // use this buffer
-  if(iCount >= iSize -1)
-  {                                     // check for wrap
-    iCount = 0;                         // if wrapping start again and reset
-  }
-  else
-  {
-    iCount++;                           // advance the counter
-  }
-  return dtostrf(f, 0, p, pBuff);       // call the library function
+    // no trigger needed here, directly start a new measurement cycle
+    this->state_en = TEMT6000_MEAS_REQ;
+    this->avgCnt_u16 = 0U;
+    this->avgData_32 = 0;
 }
 
 /**--------------------------------------------------------------------------------------
@@ -306,7 +265,6 @@ void Temt6000::PowerOn()
     {
         this->pwrPin_p->DigitalWrite(HIGH);
         p_trace->println(trace_INFO_MSG, "<<temt6000>> turned on");
-        delay(WARM_UP_TIME);
     } 
 }
 
@@ -333,15 +291,21 @@ void Temt6000::PowerOff()
 *//*-----------------------------------------------------------------------------------*/
 void Temt6000::ReadData(void) 
 {
-    // power sensor device (warm up needs to be handled in the power up function)
-    this->PowerOn();
-    // read the internal ADC
-    this->rawData_u16 = analogRead(DEFAULT_DATAPIN);
-    p_trace->print(trace_INFO_MSG, "<<temt6000>> read sensor data: ");
-                p_trace->println(trace_PURE_MSG, this->rawData_u16);
+    uint16_t temData_u16;
 
-    // power down the sensor
-    this->PowerOff();
+    // read data from internal ADC and summarize it
+    temData_u16 = analogRead(DEFAULT_DATAPIN);
+    this->avgData_32 += temData_u16;
+    this->avgCnt_u16++;
+
+    if(SENSOR_AVERAGES < this->avgCnt_u16)
+    {
+        // measurement cycle completed
+        this->rawData_u16 = (uint16_t) this->avgData_32 / this->avgCnt_u16;
+        this->avgData_32 = 0;
+        this->avgCnt_u16 = 0U;
+        this->state_en = TEMT6000_SAMPLE_COMPLETED;
+    }
 }
 
 /**--------------------------------------------------------------------------------------
@@ -374,5 +338,102 @@ void Temt6000::ProcessBrightness(void)
             this->brightPin_p->DigitalWrite(LOW);    
         }
     }
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function publishes the data to the broker
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @param     client     mqtt client object
+ * @return    true if transmission was successful
+*//*-----------------------------------------------------------------------------------*/
+boolean Temt6000::PublishData(PubSubClient *client)
+{
+    String tPayload;
+    boolean ret_bol = true;
+    char buff_ca[20];
+
+    if(true == this->isConnected_bol)
+    {
+        if(    (this->level_u8 != this->lastLevel_u8) 
+            || (this->brightness_f32 != this->lastBrightness_f32))
+        {
+            this->lastLevel_u8 = this->level_u8;
+            this->lastBrightness_f32 = this->brightness_f32;
+            p_trace->print(trace_INFO_MSG, "<<temt6000>> publish brigthness: ");
+            p_trace->print(trace_PURE_MSG, Utils::BuildSendTopic(this->dev_p, 
+                                            MQTT_PUB_BRIGHTNESS, this->buffer_ca));
+            p_trace->print(trace_PURE_MSG, "  :  ");
+            p_trace->println(trace_PURE_MSG, this->rawData_u16);
+            /*ret_bol = client->publish(build_topic(MQTT_PUB_BRIGHTNESS), 
+                                Utils::IntegerToDecString(this->rawData_u16, &buff_ca[0]), true);*/
+            ret_bol = client->publish(
+                    Utils::BuildSendTopic(this->dev_p, MQTT_PUB_BRIGHTNESS, this->buffer_ca), 
+                    Utils::IntegerToDecString(this->rawData_u16, &buff_ca[0]), true);
+
+            
+
+            p_trace->print(trace_INFO_MSG, "<<temt6000>> publish level: ");
+            p_trace->print(trace_PURE_MSG, Utils::BuildSendTopic(this->dev_p, 
+                                            MQTT_PUB_BRIGHT_LEVEL, this->buffer_ca));
+            p_trace->print(trace_PURE_MSG, "  :  ");
+            ret_bol = client->publish(Utils::BuildSendTopic(this->dev_p, 
+                                            MQTT_PUB_BRIGHT_LEVEL, this->buffer_ca), 
+                                this->level_chrp, true);
+            p_trace->println(trace_PURE_MSG, this->level_chrp);
+        } 
+    }
+    else
+    {
+        ret_bol = false;
+        p_trace->println(trace_ERROR_MSG, 
+                    "<<temt6000>> connection failure in dht ProcessPublishRequests ");  
+    }
+    this->state_en = TEMT6000_MEAS_PUBLISHED;
+
+    return(ret_bol);
+} 
+
+/**---------------------------------------------------------------------------------------
+ * @brief     This function handles the sensor state machine for a measurement interval
+ * @author    winkste
+ * @date      13 Jul. 2020
+ * @param     client     mqtt client object
+ * @return    true if transmission was successful
+*//*-----------------------------------------------------------------------------------*/
+boolean Temt6000::ProcessSensorStateMachine(PubSubClient *client)
+{
+    boolean ret_bol = true;
+
+    switch(this->state_en)
+    {
+        case TEMT6000_OFF:
+            CheckForMeasRequest();
+            break;
+        case TEMT6000_MEAS_REQ:
+            PowerOn();
+            this->state_en = TEMT6000_POWER_STARTED;
+            break;
+        case TEMT6000_POWER_STARTED:
+            ReadData();
+            break;
+        case TEMT6000_SAMPLE_COMPLETED:
+            ProcessBrightness();
+            PowerOff();
+            this->state_en = TEMT6000_MEAS_COMPLETED;
+            break;
+        case TEMT6000_MEAS_COMPLETED:
+            ret_bol = ret_bol && PublishData(client);
+            break;
+        case TEMT6000_MEAS_PUBLISHED:
+            this->state_en = TEMT6000_OFF;
+            break;
+        case TEMT6000_UNKNOWN_STATE:
+        default:
+            this->state_en = TEMT6000_OFF;
+            break;
+    }
+
+    return(ret_bol);
 }
 

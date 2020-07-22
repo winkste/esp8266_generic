@@ -52,9 +52,9 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 typedef enum neoPixMode_tag
 {
-    NORMAL_MODE = 0,
-    ALARM_MODE,
-    UNKNOWN_MODE
+    NEOPIX_NORMAL_MODE = 0,
+    NEOPIX_ALARM_MODE,
+    NEOPIX_UNKNOWN_MODE
 }neoPixMode_t;
 
 /****************************************************************************************/
@@ -79,7 +79,7 @@ class NeoPix : public MqttDevice
         /********************************************************************************/
         /* Private data definitions */ 
         boolean             lightState_bol      = false;
-        neoPixMode_t        mode_en             = NORMAL_MODE;
+        neoPixMode_t        mode_en             = NEOPIX_NORMAL_MODE;
         boolean             neoStateChanged_bol = true;
         uint8_t             brightness_u8       = 20; 
         char                topicBuff_cha[100];

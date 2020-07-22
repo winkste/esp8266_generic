@@ -84,7 +84,7 @@ NeoPix::NeoPix(Trace *trace_pcl, GpioDevice  *gpio_pcl, const char* neoChan_pch)
     this->prevTime_u32          = 0U;
     this->publications_u16      = 0U;
     this->lightState_bol        = false;
-    this->mode_en               = NORMAL_MODE;
+    this->mode_en               = NEOPIX_NORMAL_MODE;
     this->neoStateChanged_bol   = true;
     this->channel_pch           = neoChan_pch; 
     this->gpio_pcl              = gpio_pcl;
@@ -181,7 +181,7 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             p_trace->print(trace_INFO_MSG, this->deviceName_ccp);
             p_trace->print(trace_PURE_MSG, "<<dimLight>> mqtt callback: ");
             p_trace->println(trace_PURE_MSG, p_topic);
-            if(NORMAL_MODE == this->mode_en)
+            if(NEOPIX_NORMAL_MODE == this->mode_en)
             {
                 this->Toggle_vd();
             }
@@ -197,7 +197,7 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             // test if the payload is equal to "ON" or "OFF"
             if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
             {
-                if(NORMAL_MODE == this->mode_en)
+                if(NEOPIX_NORMAL_MODE == this->mode_en)
                 {
                     this->lightState_bol = true;
                     this->Set_vd();
@@ -205,7 +205,7 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             }
             else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
             {
-                if(NORMAL_MODE == this->mode_en)
+                if(NEOPIX_NORMAL_MODE == this->mode_en)
                 {   
                     this->lightState_bol = false;
                     this->Set_vd();
@@ -274,18 +274,18 @@ void NeoPix::CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload)
             // test if the payload is equal to "ON" or "OFF"
             if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_ON))) 
             {
-                this->mode_en = ALARM_MODE;  
+                this->mode_en = NEOPIX_ALARM_MODE;  
             }
             else if(0 == p_payload.indexOf(String(MQTT_PAYLOAD_CMD_OFF)))
             {
-                if(ALARM_MODE == this->mode_en)
+                if(NEOPIX_ALARM_MODE == this->mode_en)
                 {
                     // if we switch from alarm to normal mode, 
                     //ensure that the light turned of
                     this->lightState_bol = false;
                     this->Set_vd();
                 }
-                this->mode_en = NORMAL_MODE;
+                this->mode_en = NEOPIX_NORMAL_MODE;
             }
             else
             {
@@ -512,14 +512,14 @@ void NeoPix::CheckModesForTimingEvents_vd()
 {
     switch (this->mode_en)
     {
-    case ALARM_MODE:
+    case NEOPIX_ALARM_MODE:
         ControlAlarmSignal_vd();
         break;
-    case UNKNOWN_MODE:
+    case NEOPIX_UNKNOWN_MODE:
         // unexpected mode, change back to normal mode here
-        this->mode_en = NORMAL_MODE;
+        this->mode_en = NEOPIX_NORMAL_MODE;
         break;
-    case NORMAL_MODE:
+    case NEOPIX_NORMAL_MODE:
     default:
         break;
     }
@@ -533,7 +533,7 @@ void NeoPix::CheckModesForTimingEvents_vd()
 *//*-----------------------------------------------------------------------------------*/
 void NeoPix::ControlAlarmSignal_vd()
 {
-    if(ALARM_MODE == this->mode_en)
+    if(NEOPIX_ALARM_MODE == this->mode_en)
     {
         if(    (this->prevTime_u32 + ALARM_TOGGLE_TIME) < millis() 
             || (0 == this->prevTime_u32))

@@ -48,6 +48,16 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 /****************************************************************************************/
 /* Global type definitions (enum, struct, union): */
+typedef enum temt6000State_tag
+{
+    TEMT6000_OFF              = 0,
+    TEMT6000_MEAS_REQ,
+    TEMT6000_POWER_STARTED,
+    TEMT6000_SAMPLE_COMPLETED,
+    TEMT6000_MEAS_COMPLETED,
+    TEMT6000_MEAS_PUBLISHED,
+    TEMT6000_UNKNOWN_STATE
+}temt6000State_t;
 
 /****************************************************************************************/
 /* Class definition: */
@@ -74,21 +84,28 @@ class Temt6000 : public MqttDevice
     private:
         /********************************************************************************/
         /* Private data definitions */
-        uint32_t        publishData_u32;
-        char            buffer_ca[100];
-        GpioDevice      *brightPin_p;
-        GpioDevice      *pwrPin_p;
-        uint8_t         level_u8;
-        const char      *level_chrp;
-        uint8_t         lastLevel_u8;
-        float           lastBrightness_f32;
-        uint16_t        rawData_u16;
-        float           brightness_f32;
-        uint32_t        prevTime_u32;
-        uint32_t        reportCycleMSec_u32;
-        uint8_t         brightId_u8;
-        const char      *MQTT_PUB_PAY_LEVEL_DARK    = "DARK";
-        const char      *MQTT_PUB_PAY_LEVEL_BRIGHT  = "BRIGHT";
+        uint32_t            publishData_u32;
+        char                buffer_ca[100];
+        GpioDevice          *brightPin_p;
+        GpioDevice          *pwrPin_p;
+        uint8_t             level_u8;
+        const char          *level_chrp;
+        uint8_t             lastLevel_u8;
+        float               lastBrightness_f32;
+        uint16_t            rawData_u16;
+        float               brightness_f32;
+        uint32_t            prevTime_u32;
+        uint32_t            reportCycleMSec_u32;
+        uint8_t             brightId_u8;
+        const char          *MQTT_PUB_PAY_LEVEL_DARK    = "DARK";
+        const char          *MQTT_PUB_PAY_LEVEL_BRIGHT  = "BRIGHT";
+
+        temt6000State_t     state_en = TEMT6000_OFF;
+        const uint32_t      STATE_LOOP_CYCLE = 500;
+        uint32_t            lastReportTime_u32 = 0;
+
+        uint32_t            avgData_32;
+        uint16_t            avgCnt_u16;
 
         /********************************************************************************/
         /* Private function definitions: */
@@ -100,11 +117,13 @@ class Temt6000 : public MqttDevice
         
         /********************************************************************************/
         /* Protected function definitions: */
-        char *f2s(float f, int p);
+        void CheckForMeasRequest(void);
         void PowerOn();
         void PowerOff();
         void ReadData();
         void ProcessBrightness(void);
+        boolean PublishData(PubSubClient *client);
+        boolean ProcessSensorStateMachine(PubSubClient *client);
 };
 /****************************************************************************************/
 #endif /* TEMT6000_H_ */

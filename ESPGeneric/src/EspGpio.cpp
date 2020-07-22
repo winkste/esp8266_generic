@@ -120,7 +120,7 @@ EspGpio::~EspGpio()
 *//*-----------------------------------------------------------------------------------*/
 void EspGpio::PinMode(uint8_t dir_u8)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> pinMode called");
+    //this->p_trace->println(trace_INFO_MSG, "<<espgpio>> pinMode called");
     this->PrintPinStat();
     this->dir_u8 = dir_u8;
     this->PinMode();
@@ -135,7 +135,7 @@ void EspGpio::PinMode(uint8_t dir_u8)
 *//*-----------------------------------------------------------------------------------*/
 void EspGpio::DigitalWrite(uint8_t state_u8)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalWrite of ESPDevice called");
+    //this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalWrite of ESPDevice called");
     this->stat_u8 = state_u8;
     digitalWrite(this->pin_u8, this->stat_u8);
     this->value_u16 = 1023 * this->stat_u8;
@@ -151,7 +151,7 @@ void EspGpio::DigitalWrite(uint8_t state_u8)
 *//*-----------------------------------------------------------------------------------*/
 uint8_t EspGpio::DigitalRead()
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalRead of ESPDevice called");
+    //this->p_trace->println(trace_INFO_MSG, "<<espgpio>> digitalRead of ESPDevice called");
     this->stat_u8 = digitalRead(this->pin_u8);
     this->value_u16 = 1023 * this->stat_u8;
     this->PrintPinStat();
@@ -167,7 +167,7 @@ uint8_t EspGpio::DigitalRead()
 *//*-----------------------------------------------------------------------------------*/
 void EspGpio::AnalogWrite(uint16_t value_u16)
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogWrite of ESPDevice called");
+    //this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogWrite of ESPDevice called");
     this->value_u16 = value_u16;
     analogWrite(this->pin_u8, value_u16);
     this->PrintPinStat();
@@ -181,7 +181,7 @@ void EspGpio::AnalogWrite(uint16_t value_u16)
 *//*-----------------------------------------------------------------------------------*/
 uint16_t EspGpio::AnalogRead()
 {
-    this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogRead of ESPDevice called");
+    //this->p_trace->println(trace_INFO_MSG, "<<espgpio>> analogRead of ESPDevice called");
     this->value_u16 = analogRead(this->pin_u8);
     this->PrintPinStat();
     return(this->value_u16);
@@ -197,14 +197,14 @@ uint16_t EspGpio::AnalogRead()
 *//*-----------------------------------------------------------------------------------*/
 void EspGpio::PrintPinStat()
 {
-    this->p_trace->print(trace_INFO_MSG, "<<espgpio>> Pin Status: ");
+    /*this->p_trace->print(trace_INFO_MSG, "<<espgpio>> Pin Status: ");
     this->p_trace->print(trace_PURE_MSG, this->pin_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->print(trace_PURE_MSG, this->dir_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
     this->p_trace->print(trace_PURE_MSG, this->stat_u8);
     this->p_trace->print(trace_PURE_MSG, " / ");
-    this->p_trace->println(trace_PURE_MSG, this->value_u16);
+    this->p_trace->println(trace_PURE_MSG, this->value_u16);*/
 }
 
 /**---------------------------------------------------------------------------------------
