@@ -99,6 +99,7 @@ DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8,
     this->dhtId_u8 = 0;
     this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
     this->reportCycleMSec_u32 = MQTT_REPORT_INTERVAL;
+    this->readRetries_u8 = 0U;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -120,6 +121,7 @@ DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p,
     this->pwrPin_p = pwrPin_p;
     this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
     this->reportCycleMSec_u32 = reportCycleSec_u16 * MILLISEC_IN_SEC;
+    this->readRetries_u8 = 0U;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -142,6 +144,7 @@ DhtSensor::DhtSensor(Trace *p_trace, uint8_t dhtPin_u8, GpioDevice *pwrPin_p,
     this->pwrPin_p = pwrPin_p;
     this->dht_p = new DHT(this->dhtPin_u8, DHTTYPE, 11);
     this->reportCycleMSec_u32 = reportCycleSec_u16 * MILLISEC_IN_SEC;
+    this->readRetries_u8 = 0U;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -309,6 +312,7 @@ void DhtSensor::CheckForMeasRequest(void)
     {
         this->lastReportTime_u32 = actualTime_u32;
         this->state_en = DHTSENSOR_MEAS_REQ;    
+        this->readRetries_u8 = 0U;
     } 
 }
 
@@ -331,21 +335,37 @@ void DhtSensor::StartDhtSensorDriver(void)
 *//*-----------------------------------------------------------------------------------*/
 void DhtSensor::ReadDataFromSensor(void)
 {
-    this->humidity_f32 = dht_p->readHumidity();
-    this->temperature_f32 = dht_p->readTemperature();
-    TurnDHTOff();  
+    float localTem_f32 = 0.0F;
+    float localHum_f32 = 0.0F;
 
-    // apply correction factor to both measurements
-    this->humidity_f32 = this->humidity_f32 * HUMIDITY_CORR_FACTOR;
-    this->temperature_f32 = this->temperature_f32 * TEMPERATURE_CORR_FACTOR;
+    localHum_f32 = dht_p->readHumidity();
+    localTem_f32 = dht_p->readTemperature();
+    this->readRetries_u8++;  
 
     // Check if any reads failed and exit
-    if (isnan(this->humidity_f32) || isnan(this->temperature_f32)) 
+    if (!isnan(localHum_f32) && !isnan(localTem_f32)) 
+    { 
+            // apply correction factor to both measurements
+        localHum_f32 = localHum_f32 * HUMIDITY_CORR_FACTOR;
+        localTem_f32 = localTem_f32 * TEMPERATURE_CORR_FACTOR;
+        
+        this->humidity_f32 = localHum_f32;
+        this->temperature_f32 = localTem_f32;
+
+        this->state_en = DHTSENSOR_MEAS_COMPLETED;
+        TurnDHTOff();
+    }
+    else
     {
         p_trace->println(trace_ERROR_MSG, "Failed to read from DHT sensor!");
-        this->humidity_f32 = 55.0F;
-        this->temperature_f32 = 25.0F;
+        if(this->MAX_READ_RETRIES <= this->readRetries_u8)
+        {
+            p_trace->println(trace_ERROR_MSG, "Read timeout in DHT sensor driver!");  
+            this->readRetries_u8 = 0U;  
+            this->state_en = DHTSENSOR_OFF; // reset state machine to start
+        }
     }
+    
 }
 
 /**---------------------------------------------------------------------------------------
@@ -414,7 +434,6 @@ boolean DhtSensor::ProcessSensorStateMachine(PubSubClient *client)
             break;
         case DHTSENSOR_DRIVER_STARTED:
             ReadDataFromSensor();
-            this->state_en = DHTSENSOR_MEAS_COMPLETED;
             break;
         case DHTSENSOR_MEAS_COMPLETED:
             ret_bol = ret_bol && PublishData(client);

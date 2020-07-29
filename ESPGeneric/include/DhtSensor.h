@@ -85,20 +85,23 @@ class DhtSensor : public MqttDevice
     private:
         /********************************************************************************/
         /* Private data definitions */
-        uint32_t    publishData_u32;
-        char        buffer_ca[100];
-        uint8_t     dhtPin_u8;
-        GpioDevice  *pwrPin_p;
-        DHT         *dht_p; 
-        float       humidity_f32 = 0.0;
-        float       temperature_f32 = 0.0; 
-        uint32_t    prevTime_u32 = 0;
-        uint32_t    reportCycleMSec_u32;
-        uint8_t     dhtId_u8;
+        uint32_t        publishData_u32;
+        char            buffer_ca[100];
+        uint8_t         dhtPin_u8;
+        GpioDevice      *pwrPin_p;
+        DHT             *dht_p; 
+        float           humidity_f32 = 0.0;
+        float           temperature_f32 = 0.0; 
+        uint32_t        prevTime_u32 = 0;
+        uint32_t        reportCycleMSec_u32;
+        uint8_t         dhtId_u8;
 
-        state_t     state_en = DHTSENSOR_OFF;
-        const uint32_t STATE_LOOP_CYCLE = 500;
-        uint32_t    lastReportTime_u32 = 0;
+        state_t         state_en = DHTSENSOR_OFF;
+        const uint32_t  STATE_LOOP_CYCLE = 2000;
+        uint32_t        lastReportTime_u32 = 0;
+
+        uint8_t         readRetries_u8 = 0U;
+        const uint8_t   MAX_READ_RETRIES = 3U;
 
         /********************************************************************************/
         /* Private function definitions: */
