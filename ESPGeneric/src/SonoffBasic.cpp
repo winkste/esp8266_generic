@@ -360,7 +360,7 @@ void SonoffBasic::SetSelf(SonoffBasic *mySelf_p)
  * @date      20 Okt. 2017
  * @return    n/a
 *//*-----------------------------------------------------------------------------------*/
-void SonoffBasic::UpdateBUTTONstate() 
+ICACHE_RAM_ATTR void SonoffBasic::UpdateBUTTONstate() 
 {
   // toggle, write to pin, publish to server
   if(LOW == digitalRead(BUTTON_INPUT_PIN))
