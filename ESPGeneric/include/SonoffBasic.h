@@ -62,6 +62,7 @@ class SonoffBasic : public MqttDevice
         /********************************************************************************/
         /* Public function definitions: */
         SonoffBasic(Trace *p_trace);
+        SonoffBasic(Trace *p_trace, uint8_t ledPin_u8);
         // virtual functions, implementation in derived classes
         bool ProcessPublishRequests(PubSubClient *client);
         void CallbackMqtt(PubSubClient *client, char* p_topic, String p_payload);
@@ -77,6 +78,7 @@ class SonoffBasic : public MqttDevice
         /* Private data definitions */ 
         boolean relayState_bol        = false;
         boolean publishState_bol      = true;
+        uint8_t ledPin_u8             = 0;
         char buffer_ca[100];
         
         /********************************************************************************/

@@ -42,7 +42,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /****************************************************************************************/
 /* Local constant defines */
 #define RELAY_PIN                 12 // D6
-#define LED_PIN                   13 // D7
+//#define LED_PIN                   13 // D7
 #define BUTTON_INPUT_PIN          0  // D3
 #define MQTT_SUB_TOGGLE           "/r/so_basic/toggle" // command message for toggle command
 #define MQTT_SUB_BUTTON           "/r/so_basic/switch" // command message for button commands
@@ -52,6 +52,8 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
 #define BUTTON_TIMEOUT            1500  // max 1500ms timeout between each button press to count up (start of config)
 #define BUTTON_DEBOUNCE           400  // ms debouncing for the botton
+
+#define LED_PIN_UNUSED            0xFF
 
 /****************************************************************************************/
 /* Local function like makros */
@@ -81,6 +83,19 @@ SonoffBasic::SonoffBasic(Trace *p_trace) : MqttDevice(p_trace)
     this->publications_u16  = 0;
     this->relayState_bol    = false;
     this->publishState_bol  = true;
+    this->ledPin_u8         = LED_PIN_UNUSED;
+}
+
+/**---------------------------------------------------------------------------------------
+ * @brief     Constructor for the single SONOFF board
+ * @author    winkste
+ * @date      16 Feb. 2021
+ * @param     p_trace     trace object for info and error messages
+ * @return    n/a
+*//*-----------------------------------------------------------------------------------*/
+SonoffBasic::SonoffBasic(Trace *p_trace, uint8_t ledPin_u8) : SonoffBasic(p_trace)
+{
+    this->ledPin_u8         = ledPin_u8;
 }
 
 /**---------------------------------------------------------------------------------------
@@ -105,7 +120,10 @@ void SonoffBasic::Initialize()
     p_trace->println(trace_INFO_MSG, "Single relay initialized");
     
     pinMode(RELAY_PIN, OUTPUT);
-    pinMode(LED_PIN, OUTPUT);
+    if(LED_PIN_UNUSED != this->ledPin_u8)
+    {
+      pinMode(this->ledPin_u8, OUTPUT);
+    }
     this->setRelay();
 
     pinMode(BUTTON_INPUT_PIN, INPUT);
@@ -282,7 +300,10 @@ void SonoffBasic::TurnRelayOff(void)
   {
       this->relayState_bol = false;
       digitalWrite(RELAY_PIN, LOW);
-      digitalWrite(LED_PIN, HIGH);
+      if(LED_PIN_UNUSED != this->ledPin_u8)
+      {
+        digitalWrite(this->ledPin_u8, HIGH);
+      }
       p_trace->println(trace_INFO_MSG, "relay turned off");
       this->publishState_bol = true;
   }
@@ -300,7 +321,10 @@ void SonoffBasic::TurnRelayOn(void)
   {
       this->relayState_bol = true;
       digitalWrite(RELAY_PIN, HIGH);
-      digitalWrite(LED_PIN, LOW);
+      if(LED_PIN_UNUSED != this->ledPin_u8)
+      {
+        digitalWrite(this->ledPin_u8, LOW);
+      }
       p_trace->println(trace_INFO_MSG, "relay turned on");
       this->publishState_bol = true;
   }

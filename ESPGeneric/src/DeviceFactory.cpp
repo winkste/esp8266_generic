@@ -171,6 +171,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  
 
 #define PIR_SONOFF_INPUT_PIN            WEMOS_PIN_D5
+#define PIR_SONOFF_OUTPUT_LED           WEMOS_PIN_D7
 
 #define BME_PWR_PIN                     WEMOS_PIN_D3
 #define BME_LED_PIN                     WEMOS_PIN_D4
@@ -388,7 +389,7 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             device_p = sonoffDevice_p;
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated sonoff basic device");
             deviceList_p->add(device_p);
-            pirDevice_p = new Pir(trace_p, PIR_SONOFF_INPUT_PIN, false);
+            pirDevice_p = new Pir(trace_p, PIR_SONOFF_INPUT_PIN, false, PIR_SONOFF_OUTPUT_LED);
             pirDevice_p->SetSelf(pirDevice_p);
             device_p = pirDevice_p;
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
