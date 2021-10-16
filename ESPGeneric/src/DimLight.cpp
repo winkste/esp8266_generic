@@ -96,7 +96,7 @@ DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p,
 *//*-----------------------------------------------------------------------------------*/
 DimLight::DimLight(Trace *p_trace, GpioDevice  *gpio_p, const char* lightChan_p, 
                     uint16_t maxDigit_u16) 
-                    : DimLight(p_trace, gpio_p, lightChan_p, maxDigit_u16)
+                    : DimLight(p_trace, gpio_p, lightChan_p)
 {
     this->maxDigit_u16      = 1023U;
 }
