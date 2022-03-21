@@ -58,6 +58,7 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 /* Local constant defines */
 #define CAPABILITY_0x40                 0x40u
 #define CAPABILITY_0x20                 0x20u
+#define CAPABILITY_SINGLE_REL_PIR       0x16u
 #define CAPABILITY_TEST_DEVICE          0x15u
 #define CAPABILITY_MULTI_SENSE_RELAY    0x14u
 #define CAPABILITY_3D_PRINTER           0x13u
@@ -184,7 +185,6 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define DIM_LIGHT_1                     WEMOS_PIN_D4
 #define MQTT_DIM_LIGHT_1                "light_one"
 
-
 #define MQTT_CHAN_ONE                   "relay_one"
 #define MQTT_CHAN_TWO                   "relay_two"
 #define MQTT_CHAN_THREE                 "relay_three"
@@ -193,6 +193,27 @@ vAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 #define MQTT_CHAN_SIX                   "relay_six"
 #define MQTT_CHAN_SEVEN                 "relay_seven"
 #define MQTT_CHAN_EIGHT                 "relay_eight"
+
+/*
+GPIO#	    Component
+GPIO00	    User
+GPIO01	    User
+GPIO02	    LedLink
+GPIO03	    User
+GPIO04	    User
+GPIO05	    Relay 1
+GPIO09	    User
+GPIO10	    User
+GPIO12	    User
+GPIO13	    User
+GPIO14	    User
+GPIO15	    User
+GPIO16	    Led_i 2
+GPIO17	    User
+*/
+#define SINGLE_RELAY_OUTPUT_PIN         5u
+#define SINGLE_RELAY_PIR_INPUT_PIN      14u
+#define SINGLE_RELAY_PIR_OUTPUT_LED     16u
 
 
 /****************************************************************************************/
@@ -514,6 +535,17 @@ LinkedList<MqttDevice*> * DeviceFactory::GenerateDevice(uint8_t cap_u8)
             gpio_p   = new EspGpio(trace_p, PRT_3D_CTRL_DHT_PWR_2, OUTPUT);
             device_p = new DhtSensor(trace_p, PRT_3D_CTRL_DHT_DATA_2, gpio_p, MS_DHT_REPORT_CYCLE_TIME, 1);
             trace_p->println(trace_INFO_MSG, "<<devMgr>> generated dht device");
+            deviceList_p->add(device_p);
+            break;
+        case CAPABILITY_SINGLE_REL_PIR:
+            gpio_p   = new EspGpio(trace_p, SINGLE_RELAY_OUTPUT_PIN, OUTPUT);
+            device_p = new SingleRelay(trace_p, gpio_p, MQTT_CHAN_ONE, false);
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated single relay object");
+            deviceList_p->add(device_p);
+            pirDevice_p = new Pir(trace_p, SINGLE_RELAY_PIR_INPUT_PIN, false, SINGLE_RELAY_PIR_OUTPUT_LED);
+            pirDevice_p->SetSelf(pirDevice_p);
+            device_p = pirDevice_p;
+            trace_p->println(trace_INFO_MSG, "<<devMgr>> generated pir device");
             deviceList_p->add(device_p);
             break;
         case CAPABILITY_TEST_DEVICE:
